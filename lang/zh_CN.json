@@ -88,7 +88,7 @@
     "tooltip_perfect_freehand": "完美手绘（Alt + x）",
     "tooltip_toggle_calligrapher": "切换书法模式（Alt + c）",
     "tooltip_undo_last_stroke": "撤销上一笔（Alt + z）",
-    "tooltip_clean_canvas": "清除画布（. 点）",
+    "tooltip_clean_canvas": "清除画布（C）",
     "tooltip_toggle_fullscreen": "切换全屏画布（Alt + b）",
     "tooltip_restore_window_size": "恢复书写时的窗口大小",
     "tooltip_flip_to_question": "返回问题面",

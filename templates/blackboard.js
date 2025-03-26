@@ -970,7 +970,7 @@ document.addEventListener('keyup', function(e) {
         ts_undo();
     }
     // /
-    if (e.key === ".") {
+    if (e.key === "c") {
         clear_canvas();
     }
 	// ,

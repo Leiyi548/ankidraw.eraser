@@ -1,68 +1,99 @@
 <div id="canvas_wrapper">
-    <canvas id="secondary_canvas" width="100" height="100" ></canvas>
-    <canvas id="main_canvas" width="100" height="100"></canvas>
+      <canvas id="secondary_canvas" width="100" height="100"></canvas>
+      <canvas id="main_canvas" width="100" height="100"></canvas>
 
-    <div id="pencil_button_bar">
-        <!-- SVG icons from https://github.com/tabler/tabler-icons/ -->
-        <button id="ts_visibility_button" class="active" title="Toggle visiblity (, comma)"
-              onclick="switch_visibility();" >
-        <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M4 20h4l10.5 -10.5a1.5 1.5 0 0 0 -4 -4l-10.5 10.5v4"></path><path d="M13.5 6.5l4 4"></path></svg>
-        </button>
+      <div id="pencil_button_bar">
+            <!-- SVG icons from https://github.com/tabler/tabler-icons/ -->
+            <button id="ts_visibility_button" class="active" title="Toggle visiblity (, comma)"
+                  onclick="switch_visibility();">
+                  <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"
+                        stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 20h4l10.5 -10.5a1.5 1.5 0 0 0 -4 -4l-10.5 10.5v4"></path>
+                        <path d="M13.5 6.5l4 4"></path>
+                  </svg>
+            </button>
 
-        <button id="ts_eraser_button" title="Toggle Eraser (Alt + Q)">
-        <!-- ERASER_ICON_SVG_PLACEHOLDER -->
-        </button>
+            <button id="ts_eraser_button" title="Toggle Eraser (Alt + Q)">
+                  <!-- ERASER_ICON_SVG_PLACEHOLDER -->
+            </button>
 
-        <button id="ts_line_button" title="Line Tool (Alt + L)"
-              onclick="switch_line_mode();" >
-        <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M5 19l14-14"></path></svg>
-        </button>
+            <button id="ts_line_button" title="Line Tool (Alt + L)" onclick="switch_line_mode();">
+                  <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"
+                        stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 19l14-14"></path>
+                  </svg>
+            </button>
 
-        <button id="ts_rectangle_button" title="Rectangle Tool (Alt + R)"
-              onclick="switch_rectangle_mode();" >
-        <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M3 3h18v18h-18z"></path></svg>
-        </button>
+            <button id="ts_rectangle_button" title="Rectangle Tool (Alt + R)" onclick="switch_rectangle_mode();">
+                  <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"
+                        stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 3h18v18h-18z"></path>
+                  </svg>
+            </button>
 
-        <button id="ts_perfect_freehand_button" title="Perfect Freehand (Alt + x)"
-              onclick="switch_perfect_freehand()" >
-        <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M8 20l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4h4z"></path><path d="M13.5 6.5l4 4"></path><path d="M16 18h4m-2 -2v4"></path></svg>
-        </button>
+            <button id="ts_perfect_freehand_button" title="Perfect Freehand (Alt + x)"
+                  onclick="switch_perfect_freehand()">
+                  <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"
+                        stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 20l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4h4z"></path>
+                        <path d="M13.5 6.5l4 4"></path>
+                        <path d="M16 18h4m-2 -2v4"></path>
+                  </svg>
+            </button>
 
-        <button id="ts_kanji_button" title="Toggle calligrapher (Alt + c)"
-              onclick="switch_drawing_mode();" >
-        <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M3 21v-4a4 4 0 1 1 4 4h-4"></path><path d="M21 3a16 16 0 0 0 -12.8 10.2"></path><path d="M21 3a16 16 0 0 1 -10.2 12.8"></path><path d="M10.6 9a9 9 0 0 1 4.4 4.4"></path></svg>
-        </button>
+            <button id="ts_kanji_button" title="Toggle calligrapher (Alt + c)" onclick="switch_drawing_mode();">
+                  <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"
+                        stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 21v-4a4 4 0 1 1 4 4h-4"></path>
+                        <path d="M21 3a16 16 0 0 0 -12.8 10.2"></path>
+                        <path d="M21 3a16 16 0 0 1 -10.2 12.8"></path>
+                        <path d="M10.6 9a9 9 0 0 1 4.4 4.4"></path>
+                  </svg>
+            </button>
 
-        <button id="ts_undo_button" title="Undo the last stroke (Alt + z)"
-              onclick="ts_undo();" >
-        <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M4.05 11a8 8 0 1 1 .5 4m-.5 5v-5h5"></path></svg>
-        </button>
+            <button id="ts_undo_button" title="Undo the last stroke (Alt + z)" onclick="ts_undo();">
+                  <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"
+                        stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4.05 11a8 8 0 1 1 .5 4m-.5 5v-5h5"></path>
+                  </svg>
+            </button>
 
-        <button class="active" title="Clean canvas (. dot)"
-              onclick="clear_canvas();" >
-        <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M4 7h16"></path><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path><path d="M10 12l4 4m0 -4l-4 4"></path></svg>
-        </button>
+            <button class="active" title="Clean canvas (. dot)" onclick="clear_canvas();">
+                  <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"
+                        stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 7h16"></path>
+                        <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path>
+                        <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
+                        <path d="M10 12l4 4m0 -4l-4 4"></path>
+                  </svg>
+            </button>
 
-        <button id="ts_switch_fullscreen_button" class="active" title="Toggle fullscreen canvas(Alt + b)"
-              onclick="switch_small_canvas();" >
-        <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M9.00002 3.99998H4.00004L4 9M20 8.99999V4L15 3.99997M15 20H20L20 15M4 15L4 20L9.00002 20"></path></svg>
-        </button>
-        
-        <button id="ts_restore_window_size_button" title="Restore to writing window size"
-              onclick="restore_window_size();" >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none" stroke-width="1.5">
-          <!-- 外部大矩形表示主窗口 -->
-          <rect x="3" y="5" width="18" height="14" rx="1" />
-          <!-- 右上角的小矩形，宽度9高度7，保持右上贴边 -->
-          <rect x="12" y="5" width="9" height="7" rx="1" />
-        </svg>
-        </button>
-        
-        <button id="ts_flip_to_question_button" title="Flip to question side"
-              onclick="flip_to_question();" >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none" stroke-width="1.5">
-          <path d="M12 3L4 10h4v10h8V10h4z" />
-        </svg>
-        </button>
-    </div>
+            <button id="ts_switch_fullscreen_button" class="active" title="Toggle fullscreen canvas(Alt + b)"
+                  onclick="switch_small_canvas();">
+                  <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"
+                        stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                              d="M9.00002 3.99998H4.00004L4 9M20 8.99999V4L15 3.99997M15 20H20L20 15M4 15L4 20L9.00002 20">
+                        </path>
+                  </svg>
+            </button>
+
+            <button id="ts_restore_window_size_button" title="Restore to writing window size"
+                  onclick="restore_window_size();">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+                        stroke="currentColor" fill="none" stroke-width="1.5">
+                        <!-- 外部大矩形表示主窗口 -->
+                        <rect x="3" y="5" width="18" height="14" rx="1" />
+                        <!-- 右上角的小矩形，宽度9高度7，保持右上贴边 -->
+                        <rect x="12" y="5" width="9" height="7" rx="1" />
+                  </svg>
+            </button>
+
+            <button id="ts_flip_to_question_button" title="Flip to question side" onclick="flip_to_question();">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+                        stroke="currentColor" fill="none" stroke-width="1.5">
+                        <path d="M12 3L4 10h4v10h8V10h4z" />
+                  </svg>
+            </button>
+      </div>
 </div>
