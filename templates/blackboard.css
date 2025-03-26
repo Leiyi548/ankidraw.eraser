@@ -1,25 +1,48 @@
 :root {
   /*TOOLBAR_LOCATION_PLACEHOLDER*/
 }
+
 body {
-  overflow-x: hidden; /* Hide horizontal scrollbar */
+  overflow-x: hidden;
+  /* Hide horizontal scrollbar */
 }
+
 /*
     允许手指滚动，但保持笔和鼠标的绘图功能
 */
-#canvas_wrapper, #main_canvas, #secondary_canvas {
-   z-index: 999;/* add toggle?*/
-  touch-action: pan-x pan-y; /* 允许触摸滚动 */
-  
-  position:var(--canvas-bar-position);
+#canvas_wrapper,
+#main_canvas,
+#secondary_canvas {
+  z-index: 999;
+  /* add toggle?*/
+  touch-action: pan-x pan-y;
+  /* 允许触摸滚动 */
+
+  position: var(--canvas-bar-position);
   top: var(--canvas-bar-pt);
   right: var(--canvas-bar-pr);
   bottom: var(--canvas-bar-pb);
   left: var(--canvas-bar-pl);
-  }
-#main_canvas, #secondary_canvas {
+}
+
+#main_canvas,
+#secondary_canvas {
   background: var(--background-color);
-  opacity: /*OPACITY_PLACEHOLDER*/;
+  opacity:
+    /*OPACITY_PLACEHOLDER*/
+  ;
+  border-style: none;
+  border-width: 1px;
+}
+
+/* 添加透明网格 */
+#main_canvas {
+  background: var(--background-color);
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: 0 0;
   border-style: none;
   border-width: 1px;
 }
@@ -41,12 +64,15 @@ body {
 
 /* 当橡皮擦激活时的鼠标样式 */
 .eraser-active #main_canvas {
-  cursor: none !important; /* 隐藏默认鼠标指针，只显示我们的指示器 */
+  cursor: none !important;
+  /* 隐藏默认鼠标指针，只显示我们的指示器 */
 }
 
 #pencil_button_bar {
   position: fixed;
-  display: /*ZEN_MODE_PLACEHOLDER*/;
+  display:
+    /*ZEN_MODE_PLACEHOLDER*/
+  ;
   flex-direction: var(--button-bar-orientation);
   opacity: .5;
   top: var(--button-bar-pt);
@@ -55,41 +81,70 @@ body {
   left: var(--button-bar-pl);
   z-index: 8000;
   transition: .5s;
-} #pencil_button_bar:hover { 
+}
+
+#pencil_button_bar:hover {
   opacity: 1;
-  transform: scale(1.05); /* 添加悬停时的放大效果 */
+  transform: scale(1.05);
+  /* 添加悬停时的放大效果 */
   transition: 0.3s;
-} #pencil_button_bar > button {
+}
+
+#pencil_button_bar>button {
   margin: 2px;
-  min-width: 2em;  /* 设置最小宽度 */
-  max-width: 2em;  /* 设置最大宽度 */
-  padding: 2px;    /* 减少内边距 */
-  aspect-ratio: 1; /* 保持方形 */
-} #pencil_button_bar > button > svg {
-  width: 1.5em;    /* 缩小图标尺寸 */
-  height: 1.5em;   /* 保持图标方形 */
-} #pencil_button_bar > button:hover > svg {
+  min-width: 2em;
+  /* 设置最小宽度 */
+  max-width: 2em;
+  /* 设置最大宽度 */
+  padding: 2px;
+  /* 减少内边距 */
+  aspect-ratio: 1;
+  /* 保持方形 */
+}
+
+#pencil_button_bar>button>svg {
+  width: 1.5em;
+  /* 缩小图标尺寸 */
+  height: 1.5em;
+  /* 保持图标方形 */
+}
+
+#pencil_button_bar>button:hover>svg {
   filter: drop-shadow(0 0 4px rgba(33, 150, 243, 0.5));
   transition: filter 0.3s ease;
-} #pencil_button_bar > button.active > svg > path {
+}
+
+#pencil_button_bar>button.active>svg>path {
   stroke: #2196F3 !important;
   transition: stroke 0.3s ease;
-} .night_mode #pencil_button_bar > button.active > svg > path {
+}
+
+.night_mode #pencil_button_bar>button.active>svg>path {
   stroke: #2196F3 !important;
-} #pencil_button_bar > button > svg > path {
+}
+
+#pencil_button_bar>button>svg>path {
   stroke: #888;
-} .night_mode #pencil_button_bar > button > svg > path {
+}
+
+.night_mode #pencil_button_bar>button>svg>path {
   /*stroke: #888;*/
 }
+
 .nopointer {
-  cursor: /*AUTO_HIDE_POINTER_PLACEHOLDER*/ !important;
-} 
-.touch_disable > button:not(:first-child){
-    display: none !important;
+  cursor:
+    /*AUTO_HIDE_POINTER_PLACEHOLDER*/
+    !important;
 }
-.nopointer #pencil_button_bar
-{
-  display: /*AUTO_HIDE_PLACEHOLDER*/;
+
+.touch_disable>button:not(:first-child) {
+  display: none !important;
+}
+
+.nopointer #pencil_button_bar {
+  display:
+    /*AUTO_HIDE_PLACEHOLDER*/
+  ;
 }
 
 /* 移除侧方按键橡皮擦模式样式 */
@@ -101,12 +156,12 @@ body {
   animation: pulse-side-button 2s infinite;
 }
 
-#ts_eraser_button.side-button-active > svg > path {
+#ts_eraser_button.side-button-active>svg>path {
   stroke: #2196F3 !important;
   stroke-width: 2px;
 }
 
-.night_mode #ts_eraser_button.side-button-active > svg > path {
+.night_mode #ts_eraser_button.side-button-active>svg>path {
   stroke: #64B5F6 !important;
 }
 
@@ -115,9 +170,11 @@ body {
   0% {
     box-shadow: 0 0 0 0 rgba(33, 150, 243, 0.6);
   }
+
   70% {
     box-shadow: 0 0 0 6px rgba(33, 150, 243, 0);
   }
+
   100% {
     box-shadow: 0 0 0 0 rgba(33, 150, 243, 0);
   }
@@ -133,6 +190,7 @@ body {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
