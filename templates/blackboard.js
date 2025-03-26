@@ -202,9 +202,29 @@ canvas.addEventListener("pointermove", handlePenEraserMove, { passive: false });
 window.addEventListener("pointerup", stopPenEraser, { passive: false });
 
 function switch_drawing_mode() {
-    // 功能已禁用
-    calligraphy = false;
-    ts_kanji_button.className = '';
+    var ts_write_button = document.getElementById('ts_write_button');
+    // 切换active状态
+    if (ts_write_button.className.includes('active')) {
+        ts_write_button.className = ts_write_button.className.replace(/\bactive\b/g, '');
+    } else {
+        // 禁用矩形模式
+        rectangleMode = false
+        document.getElementById('ts_rectangle_button').className = '';
+        // 移除矩形工具的事件监听器
+        if (typeof pointerDownRectangle === 'function') {
+            canvas.removeEventListener('pointerdown', pointerDownRectangle);
+            canvas.removeEventListener('pointermove', pointerMoveRectangle);
+            window.removeEventListener('pointerup', pointerUpRectangle);
+        }
+        // 禁用直线模式
+        lineMode = false
+        document.getElementById('ts_line_button').className = '';
+        // 禁用像皮擦
+        if (eraserMode) {
+            toggleEraser(false);
+        }
+        ts_write_button.className += ' active';
+    }
 }
 
 function switch_class(e, c) {
@@ -994,6 +1014,10 @@ document.addEventListener('keyup', function (e) {
     if ((e.keyCode == 90 || e.keyCode == 122) && e.altKey) {
         e.preventDefault();
         ts_undo();
+    }
+    // 切换至画笔模式
+    if (e.key === "w") {
+        switch_drawing_mode();
     }
     // /
     if (e.key === "c") {
@@ -3263,6 +3287,7 @@ function switch_line_mode() {
     stop_drawing();
     lineMode = !lineMode;
     var lineButton = document.getElementById('ts_line_button');
+    var ts_write_button = document.getElementById('ts_write_button');
     if (lineMode) {
         lineButton.className = 'active';
 
@@ -3281,6 +3306,7 @@ function switch_line_mode() {
         ts_perfect_freehand_button.className = '';
         perfectFreehand = false;
         ts_kanji_button.className = '';
+        ts_write_button.className = '';
         calligraphy = false;
         if (eraserMode) {
             toggleEraser(false);
@@ -3295,6 +3321,7 @@ function switch_line_mode() {
         }
     } else {
         lineButton.className = '';
+        ts_write_button.className = 'active';
     }
 }
 
@@ -4056,6 +4083,7 @@ function switch_rectangle_mode() {
     rectangleMode = !rectangleMode;
 
     var rectangleButton = document.getElementById('ts_rectangle_button');
+    var ts_write_button = document.getElementById('ts_write_button');
 
     if (rectangleMode) {
         rectangleButton.className = 'active';
@@ -4070,6 +4098,7 @@ function switch_rectangle_mode() {
 
         // 禁用其他模式
         ts_perfect_freehand_button.className = '';
+        ts_write_button.className = '';
         perfectFreehand = false;
         ts_kanji_button.className = '';
         calligraphy = false;
@@ -4098,6 +4127,7 @@ function switch_rectangle_mode() {
         }
     } else {
         rectangleButton.className = '';
+        ts_write_button.className = 'active';
 
         // 移除矩形工具的事件监听器
         if (typeof pointerDownRectangle === 'function') {
@@ -4109,7 +4139,6 @@ function switch_rectangle_mode() {
 }
 
 // 在pointerUpLine函数定义后添加以下函数
-
 function pointerDownRectangle(e) {
     // 如果是触摸事件，直接返回，不处理绘图
     if (e.pointerType === 'touch') {
