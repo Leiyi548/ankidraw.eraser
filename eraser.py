@@ -63,22 +63,6 @@ def toggle_eraser():
         }
         """)
 
-@slot()
-def setup_eraser_shortcuts():
-    """
-    Set up keyboard shortcut for toggling eraser.
-    """
-    from . import execute_js
-    execute_js("""
-    document.addEventListener('keyup', function(e) {
-        // Alt + Q to toggle eraser
-        if ((e.key === "q" || e.key === "Q") && e.altKey) {
-            e.preventDefault();
-            toggleEraser();
-        }
-    });
-    """)
-
 def set_eraser_size(size):
     """
     设置橡皮擦大小
@@ -138,5 +122,4 @@ def setup_eraser():
     """
     addHook("profileLoaded", load_eraser_state)
     addHook("unloadProfile", save_eraser_state)
-    addHook("profileLoaded", setup_eraser_shortcuts)
     addHook("profileLoaded", add_eraser_js) 

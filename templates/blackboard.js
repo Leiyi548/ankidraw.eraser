@@ -1019,7 +1019,11 @@ document.addEventListener('keyup', function (e) {
     if (e.key === "w") {
         switch_drawing_mode();
     }
-    // /
+    // 切换至橡皮擦模式
+    if (e.key === "q") {
+        toggleEraser();
+    }
+    // 清除画布
     if (e.key === "c") {
         clear_canvas();
     }
