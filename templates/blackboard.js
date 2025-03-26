@@ -11,12 +11,12 @@ var ts_visibility_button = document.getElementById('ts_visibility_button');
 var ts_kanji_button = document.getElementById('ts_kanji_button');
 var ts_perfect_freehand_button = document.getElementById('ts_perfect_freehand_button');
 var ts_switch_fullscreen_button = document.getElementById('ts_switch_fullscreen_button');
-var arrays_of_points = [ ];
+var arrays_of_points = [];
 var convertDotStrokes = /*CONVERT_DOT_STROKES_PLACEHOLDER*/;
 var color = '#fff';
 var calligraphy = /*CALLIGRAPHY_PLACEHOLDER*/;
-var line_type_history = [ ];
-var perfect_cache = [ ];
+var line_type_history = [];
+var perfect_cache = [];
 var line_width = 4;
 var small_canvas = /*SMALL_CANVAS_PLACEHOLDER*/;
 var fullscreen_follow = /*FOLLOW_PLACEHOLDER*/;
@@ -71,86 +71,117 @@ var lineDashPattern = []; // 虚线模式
 var lineStyleSlider = null; // 直线样式选择器
 var lineStyleSliderTimeout = null; // 直线样式选择器隐藏计时器
 
-canvas.onselectstart = function() { return false; };
-secondary_canvas.onselectstart = function() { return false; };
-wrapper.onselectstart = function() { return false; };
+canvas.onselectstart = function () { return false; };
+secondary_canvas.onselectstart = function () { return false; };
+wrapper.onselectstart = function () { return false; };
 
-function switch_perfect_freehand()
-{
+function switch_perfect_freehand() {
     // 功能已禁用
     perfectFreehand = false;
     ts_perfect_freehand_button.className = '';
     ts_redraw()
 }
 
-function switch_small_canvas()
-{
+function switch_small_canvas() {
     stop_drawing();
-    
+
     small_canvas = !small_canvas;
-    if(!small_canvas)
-    {
+    if (!small_canvas) {
         ts_switch_fullscreen_button.className = 'active';
     }
-    else{
+    else {
         ts_switch_fullscreen_button.className = '';
     }
     resize();
 }
 
-function switch_visibility()
-{
-	stop_drawing();
-    
+function switch_visibility() {
+    stop_drawing();
+
     // Add debug logs to console
     console.log("Before toggle - visible:", visible);
     console.log("Before toggle - optionBar.className:", optionBar.className);
-    
-    if (visible)
-    {
+
+    if (visible) {
         // Hide canvas
-        canvas.style.display='none';
-        secondary_canvas.style.display=canvas.style.display;
+        canvas.style.display = 'none';
+        secondary_canvas.style.display = canvas.style.display;
         ts_visibility_button.className = '';
-        
+
         // Force toolbar to collapse - explicitly set all other buttons to none
         optionBar.className = 'touch_disable';
-        
+
         // Make sure all buttons except the first one are hidden
         var buttons = optionBar.querySelectorAll('button:not(:first-child)');
-        buttons.forEach(function(btn) {
+        // 改变第一按钮的svg
+        var firstButton = optionBar.querySelector('button:first-child');
+        var openEyeSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        openEyeSvg.setAttribute("viewBox", "0 0 1024 1024");
+        openEyeSvg.setAttribute("width", "200");
+        openEyeSvg.setAttribute("height", "200");
+
+        var path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path1.setAttribute("d", "M512 643.134694c-72.097959 0-131.134694-58.514286-131.134694-131.134694S439.902041 380.865306 512 380.865306s131.134694 58.514286 131.134694 131.134694-59.036735 131.134694-131.134694 131.134694z m0-220.47347c-49.110204 0-89.338776 40.228571-89.338776 89.338776s40.228571 89.338776 89.338776 89.338776 89.338776-40.228571 89.338776-89.338776-40.228571-89.338776-89.338776-89.338776z");
+        path1.setAttribute("fill", "#333333");
+
+        var path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path2.setAttribute("d", "M512 780.538776c-173.97551 0-321.828571-131.134694-394.44898-208.979592-30.82449-33.436735-30.82449-85.159184 0-118.595919 72.620408-77.844898 220.473469-208.979592 394.44898-208.979592s321.828571 131.134694 394.44898 208.979592c30.82449 33.436735 30.82449 85.159184 0 118.595919-72.620408 77.844898-220.473469 208.979592-394.44898 208.979592z m0-495.281633c-158.302041 0-295.706122 122.77551-364.146939 195.918367-16.195918 17.240816-16.195918 44.408163 0 61.64898 67.918367 73.142857 205.844898 195.918367 364.146939 195.918367s295.706122-122.77551 364.146939-195.918367c16.195918-17.240816 16.195918-44.408163 0-61.64898-68.440816-73.142857-205.844898-195.918367-364.146939-195.918367z");
+        path2.setAttribute("fill", "#333333");
+
+        openEyeSvg.appendChild(path1);
+        openEyeSvg.appendChild(path2);
+        firstButton.innerHTML = ''; // 清空原有内容
+        firstButton.appendChild(openEyeSvg);
+
+        buttons.forEach(function (btn) {
             btn.dataset.originalDisplay = btn.style.display;
             btn.style.display = 'none';
         });
-        
+
         // Force the toolbar to update its class immediately
-        setTimeout(function() {
+        setTimeout(function () {
             console.log("After hide - optionBar.className:", optionBar.className);
         }, 10);
     }
-    else
-    {
+    else {
         // Show canvas
-        canvas.style.display='block';
-        secondary_canvas.style.display=canvas.style.display;
+        canvas.style.display = 'block';
+        secondary_canvas.style.display = canvas.style.display;
         ts_visibility_button.className = 'active';
-        
+
         // Restore toolbar to expanded state
         optionBar.className = '';
-        
+
         // Restore all buttons to their original display state
         var buttons = optionBar.querySelectorAll('button:not(:first-child)');
-        buttons.forEach(function(btn) {
+        buttons.forEach(function (btn) {
             btn.style.display = btn.dataset.originalDisplay || '';
         });
-        
+
+        // 恢复第一按钮的svg
+        var firstButton = optionBar.querySelector('button:first-child');
+        // 创建闭眼SVG元素
+        var closeEyeSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        closeEyeSvg.setAttribute("viewBox", "0 0 1024 1024");
+        closeEyeSvg.setAttribute("width", "200");
+        closeEyeSvg.setAttribute("height", "200");
+
+        var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", "M332.8 729.6l34.133333-34.133333c42.666667 12.8 93.866667 21.333333 145.066667 21.333333 162.133333 0 285.866667-68.266667 375.466667-213.333333-46.933333-72.533333-102.4-128-166.4-162.133334l29.866666-29.866666c72.533333 42.666667 132.266667 106.666667 183.466667 192-98.133333 170.666667-243.2 256-426.666667 256-59.733333 4.266667-119.466667-8.533333-174.933333-29.866667z m-115.2-64c-51.2-38.4-93.866667-93.866667-132.266667-157.866667 98.133333-170.666667 243.2-256 426.666667-256 38.4 0 76.8 4.266667 110.933333 12.8l-34.133333 34.133334c-25.6-4.266667-46.933333-4.266667-76.8-4.266667-162.133333 0-285.866667 68.266667-375.466667 213.333333 34.133333 51.2 72.533333 93.866667 115.2 128l-34.133333 29.866667z m230.4-46.933333l29.866667-29.866667c8.533333 4.266667 21.333333 4.266667 29.866666 4.266667 46.933333 0 85.333333-38.4 85.333334-85.333334 0-12.8 0-21.333333-4.266667-29.866666l29.866667-29.866667c12.8 17.066667 17.066667 38.4 17.066666 64 0 72.533333-55.466667 128-128 128-17.066667-4.266667-38.4-12.8-59.733333-21.333333zM384 499.2c4.266667-68.266667 55.466667-119.466667 123.733333-123.733333 0 4.266667-123.733333 123.733333-123.733333 123.733333zM733.866667 213.333333l29.866666 29.866667-512 512-34.133333-29.866667L733.866667 213.333333z");
+        path.setAttribute("fill", "#444444");
+
+        closeEyeSvg.appendChild(path);
+        firstButton.innerHTML = ''; // 清空原有内容
+        firstButton.appendChild(closeEyeSvg);
+
+
         // Force the toolbar to update its class immediately
-        setTimeout(function() {
+        setTimeout(function () {
             console.log("After show - optionBar.className:", optionBar.className);
         }, 10);
     }
     visible = !visible;
-    
+
     // Add final debug log
     console.log("After toggle - visible:", visible);
     console.log("After toggle - optionBar.className:", optionBar.className);
@@ -158,46 +189,42 @@ function switch_visibility()
 
 //Initialize event listeners at the start;
 // 使用options参数设置passive为false，这允许我们在事件处理函数中根据条件决定是否阻止默认行为
-canvas.addEventListener("pointerdown", pointerDownLine, {passive: false});
-canvas.addEventListener("pointermove", pointerMoveLine, {passive: false});
-window.addEventListener("pointerup", pointerUpLine, {passive: false});
-canvas.addEventListener("pointerdown", pointerDownCaligraphy, {passive: false});
-canvas.addEventListener("pointermove", pointerMoveCaligraphy, {passive: false});
-window.addEventListener("pointerup", pointerUpCaligraphy, {passive: false});
+canvas.addEventListener("pointerdown", pointerDownLine, { passive: false });
+canvas.addEventListener("pointermove", pointerMoveLine, { passive: false });
+window.addEventListener("pointerup", pointerUpLine, { passive: false });
+canvas.addEventListener("pointerdown", pointerDownCaligraphy, { passive: false });
+canvas.addEventListener("pointermove", pointerMoveCaligraphy, { passive: false });
+window.addEventListener("pointerup", pointerUpCaligraphy, { passive: false });
 
 // 添加Surface Pen笔端擦除事件
-canvas.addEventListener("pointerdown", handlePenEraser, {passive: false});
-canvas.addEventListener("pointermove", handlePenEraserMove, {passive: false});
-window.addEventListener("pointerup", stopPenEraser, {passive: false});
+canvas.addEventListener("pointerdown", handlePenEraser, { passive: false });
+canvas.addEventListener("pointermove", handlePenEraserMove, { passive: false });
+window.addEventListener("pointerup", stopPenEraser, { passive: false });
 
-function switch_drawing_mode()
-{
+function switch_drawing_mode() {
     // 功能已禁用
     calligraphy = false;
     ts_kanji_button.className = '';
 }
 
-function switch_class(e,c)
-{
+function switch_class(e, c) {
     var reg = new RegExp('(\\\s|^)' + c + '(\\s|$)');
-    if (e.className.match(new RegExp('(\\s|^)' + c + '(\\s|$)')))
-    {
+    if (e.className.match(new RegExp('(\\s|^)' + c + '(\\s|$)'))) {
         e.className = e.className.replace(reg, '');
     }
-    else
-    {
+    else {
         e.className += c;
     }
 }
 function resize() {
     var card = document.getElementsByClassName('card')[0];
-    
+
     // Run again until card is loaded
     if (!card) {
         window.setTimeout(resize, 100);
         return;
     }
-    
+
     // Check size of page without canvas
     canvas_wrapper.style.display = 'none';
     canvas.style["border-style"] = "none";
@@ -206,7 +233,7 @@ function resize() {
     document.documentElement.style.setProperty('--canvas-bar-pb', 'unset');
     document.documentElement.style.setProperty('--canvas-bar-pl', 'unset');
     document.documentElement.style.setProperty('--canvas-bar-position', 'absolute');
-    
+
     // 获取实际的窗口高度，包括所有内容
     var totalHeight = Math.max(
         document.documentElement.scrollHeight,
@@ -218,7 +245,7 @@ function resize() {
         card.scrollHeight,
         card.offsetHeight
     );
-    
+
     // 获取实际的窗口宽度
     var totalWidth = Math.max(
         document.documentElement.scrollWidth,
@@ -230,23 +257,23 @@ function resize() {
         card.scrollWidth,
         card.offsetWidth
     );
-    
+
     if (!small_canvas && !fullscreen_follow) {
         ctx.canvas.width = totalWidth;
         ctx.canvas.height = totalHeight;
     } else if (small_canvas) {
-        ctx.canvas.width = Math.min(totalWidth, 
+        ctx.canvas.width = Math.min(totalWidth,
             parseInt(getComputedStyle(document.documentElement).getPropertyValue('--small-canvas-width')));
-        ctx.canvas.height = Math.min(totalHeight, 
+        ctx.canvas.height = Math.min(totalHeight,
             parseInt(getComputedStyle(document.documentElement).getPropertyValue('--small-canvas-height')));
         canvas.style["border-style"] = "dashed";
-        document.documentElement.style.setProperty('--canvas-bar-pt', 
+        document.documentElement.style.setProperty('--canvas-bar-pt',
             getComputedStyle(document.documentElement).getPropertyValue('--button-bar-pt'));
-        document.documentElement.style.setProperty('--canvas-bar-pr', 
+        document.documentElement.style.setProperty('--canvas-bar-pr',
             getComputedStyle(document.documentElement).getPropertyValue('--button-bar-pr'));
-        document.documentElement.style.setProperty('--canvas-bar-pb', 
+        document.documentElement.style.setProperty('--canvas-bar-pb',
             getComputedStyle(document.documentElement).getPropertyValue('--button-bar-pb'));
-        document.documentElement.style.setProperty('--canvas-bar-pl', 
+        document.documentElement.style.setProperty('--canvas-bar-pl',
             getComputedStyle(document.documentElement).getPropertyValue('--button-bar-pl'));
         document.documentElement.style.setProperty('--canvas-bar-position', 'fixed');
     } else {
@@ -254,20 +281,20 @@ function resize() {
         ctx.canvas.width = totalWidth - 1;
         ctx.canvas.height = totalHeight - 1;
     }
-    
+
     secondary_ctx.canvas.width = ctx.canvas.width;
     secondary_ctx.canvas.height = ctx.canvas.height;
     canvas_wrapper.style.display = 'block';
-    
+
     /* Get DPR with 1 as fallback */
     var dpr = window.devicePixelRatio || 1;
-    
+
     /* CSS size is the same */
     canvas.style.height = ctx.canvas.height + 'px';
     wrapper.style.width = ctx.canvas.width + 'px';
     secondary_canvas.style.height = canvas.style.height;
     secondary_canvas.style.width = canvas.style.width;
-    
+
     /* Increase DOM size and scale */
     ctx.canvas.width *= dpr;
     ctx.canvas.height *= dpr;
@@ -275,20 +302,20 @@ function resize() {
     secondary_ctx.canvas.width *= dpr;
     secondary_ctx.canvas.height *= dpr;
     secondary_ctx.scale(dpr, dpr);
-    
+
     update_pen_settings();
-    
+
     // 添加调试日志
-    console.log('AnkiDraw Debug: 画布大小已更新', 
-                'width:', ctx.canvas.width / dpr, 
-                'height:', ctx.canvas.height / dpr,
-                'totalWidth:', totalWidth,
-                'totalHeight:', totalHeight,
-                'window.innerWidth:', window.innerWidth,
-                'window.innerHeight:', window.innerHeight,
-                'document.documentElement.scrollHeight:', document.documentElement.scrollHeight,
-                'document.body.scrollHeight:', document.body.scrollHeight,
-                'card.scrollHeight:', card.scrollHeight);
+    console.log('AnkiDraw Debug: 画布大小已更新',
+        'width:', ctx.canvas.width / dpr,
+        'height:', ctx.canvas.height / dpr,
+        'totalWidth:', totalWidth,
+        'totalHeight:', totalHeight,
+        'window.innerWidth:', window.innerWidth,
+        'window.innerHeight:', window.innerHeight,
+        'document.documentElement.scrollHeight:', document.documentElement.scrollHeight,
+        'document.body.scrollHeight:', document.body.scrollHeight,
+        'card.scrollHeight:', card.scrollHeight);
 }
 
 
@@ -297,7 +324,7 @@ window.addEventListener('load', resize);
 window.requestAnimationFrame(draw_last_line_segment);
 
 // 添加键盘快捷键支持
-document.addEventListener('keydown', function(e) {
+document.addEventListener('keydown', function (e) {
     if (e.altKey) {
         switch (e.key.toLowerCase()) {
             case 'l':
@@ -311,7 +338,7 @@ var isPointerDown = false;
 var mouseX = 0;
 var mouseY = 0;
 
-function update_pen_settings(){
+function update_pen_settings() {
     ctx.lineJoin = ctx.lineCap = 'round';
     ctx.lineWidth = line_width;
     ctx.strokeStyle = color;
@@ -324,13 +351,13 @@ function update_pen_settings(){
 }
 
 // 专门更新直线工具的设置
-function update_line_settings(){
+function update_line_settings() {
     secondary_ctx.lineJoin = 'round';
     secondary_ctx.lineCap = 'round';
     secondary_ctx.lineWidth = lineWidth; // 使用直线专用的线宽
     secondary_ctx.strokeStyle = lineColor; // 使用直线专用的颜色
     secondary_ctx.fillStyle = lineColor;
-    
+
     // 根据直线样式设置不同的样式
     if (lineStyle === 'dashed' && lineDashPattern.length > 0) {
         // 设置虚线模式
@@ -345,15 +372,15 @@ function update_line_settings(){
 var strokeOperation = ''; // 记录最近的操作类型：'A'=添加，'E'=擦除，'U'=撤销
 var lastWindowSize = { width: 0, height: 0 }; // 记录最后保存的窗口大小
 
-function ts_undo(){
-    if(!line_type_history.length) return;
-    
+function ts_undo() {
+    if (!line_type_history.length) return;
+
     var lastOperation = line_type_history.pop();
     console.log('AnkiDraw Debug: 撤销操作，类型:', lastOperation);
-    
+
     // 设置操作类型为撤销
     strokeOperation = 'U';
-    
+
     switch (lastOperation) {
         case 'E': // 擦除操作
             var lastErased = erasedStrokes.pop();
@@ -370,11 +397,11 @@ function ts_undo(){
             }
             break;
         case 'C': //Calligraphy
-            strokes.pop();    
+            strokes.pop();
             break;
         case 'L': //Simple Lines
         case 'R': //Rectangle
-            var index = arrays_of_points.length-1;
+            var index = arrays_of_points.length - 1;
             arrays_of_points.pop();
             perfect_cache[index] = null;
             break;
@@ -385,13 +412,13 @@ function ts_undo(){
             }
             break;
     }
-    
-    if(!line_type_history.length) {
+
+    if (!line_type_history.length) {
         clear_canvas();
         ts_undo_button.className = "";
     } else {
         ts_redraw();
-        
+
         // 标记笔迹已变化，但不保存窗口大小
         strokesChanged = true;
         save_strokes_debounced();
@@ -403,12 +430,11 @@ function ts_redraw() {
 }
 
 function ts_clear() {
-	pleaseRedrawEverything = true;
+    pleaseRedrawEverything = true;
     fullClear = true;
 }
 
-function clear_canvas()
-{
+function clear_canvas() {
     //don't continue to put points into an empty array(pointermove) if clearing while drawing on the canvas
     stop_drawing();
     arrays_of_points = [];
@@ -416,7 +442,7 @@ function clear_canvas()
     perfect_cache = [];
     line_type_history = [];
     ts_clear();
-    
+
     // 标记笔迹已变化并保存（清空）
     strokesChanged = true;
     save_strokes_debounced();
@@ -428,12 +454,12 @@ function stop_drawing() {
         clearTimeout(pendingPenStrokeTimer);
         pendingPenStroke = null;
     }
-    
+
     if (pendingCalligraphyTimer) {
         clearTimeout(pendingCalligraphyTimer);
         pendingCalligraphyStroke = null;
     }
-    
+
     isPointerDown = false;
 }
 
@@ -450,58 +476,58 @@ function draw_last_line_segment() {
 var nextLine = 0;
 var nextPoint = 0;
 var nextStroke = 0;
-var p1,p2,p3;
+var p1, p2, p3;
 
-function is_last_path_and_currently_drawn(i){
-    return (isPointerDown && arrays_of_points.length-1 == i)//the path is complete unless its the last of the array and the pointer is still down
+function is_last_path_and_currently_drawn(i) {
+    return (isPointerDown && arrays_of_points.length - 1 == i)//the path is complete unless its the last of the array and the pointer is still down
 }
 
-function all_drawing_finished(i){
-    return (!isPointerDown && arrays_of_points.length-1 == i)//the path is complete unless its the last of the array and the pointer is still down
+function all_drawing_finished(i) {
+    return (!isPointerDown && arrays_of_points.length - 1 == i)//the path is complete unless its the last of the array and the pointer is still down
 }
 
 async function draw_path_at_some_point_async(startX, startY, midX, midY, endX, endY, lineWidth) {
-		ctx.beginPath();
-		ctx.moveTo((startX + (midX - startX) / 2), (startY + (midY - startY)/ 2));//midpoint calculation for x and y
-		ctx.quadraticCurveTo(midX, midY, (midX + (endX - midX) / 2), (midY + (endY - midY)/ 2));
-		ctx.lineWidth = lineWidth;
-		ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo((startX + (midX - startX) / 2), (startY + (midY - startY) / 2));//midpoint calculation for x and y
+    ctx.quadraticCurveTo(midX, midY, (midX + (endX - midX) / 2), (midY + (endY - midY) / 2));
+    ctx.lineWidth = lineWidth;
+    ctx.stroke();
 };
 
 var pleaseRedrawEverything = false;
 var fullClear = false;
-async function draw_upto_latest_point_async(startLine, startPoint, startStroke){
-	//Don't keep redrawing the same last point over and over
-	//if(!pleaseRedrawEverything && 
+async function draw_upto_latest_point_async(startLine, startPoint, startStroke) {
+    //Don't keep redrawing the same last point over and over
+    //if(!pleaseRedrawEverything && 
     //(startLine == arrays_of_points.length && startPoint == arrays_of_points[startLine-1].length) && 
     //(startStroke == strokes.length)) return;
 
-	var fullRedraw = false;//keep track if this call started a full redraw to unset pleaseRedrawEverything flag later.
-	if (pleaseRedrawEverything) {// erase everything and draw from start
-	fullRedraw = true;
-	startLine = 0;
-	startPoint = 0;
-    startStroke = 0;
-	ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-	}
+    var fullRedraw = false;//keep track if this call started a full redraw to unset pleaseRedrawEverything flag later.
+    if (pleaseRedrawEverything) {// erase everything and draw from start
+        fullRedraw = true;
+        startLine = 0;
+        startPoint = 0;
+        startStroke = 0;
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    }
 
-	for(var i = startLine; i < arrays_of_points.length; i++){ //Draw Lines
+    for (var i = startLine; i < arrays_of_points.length; i++) { //Draw Lines
         var needPerfectDraw = false;
-		nextLine = i;
-		
+        nextLine = i;
+
         // 处理直线工具创建的线(只有两个点)
         if (arrays_of_points[i].length === 2) {
             var p1 = arrays_of_points[i][0];
             var p2 = arrays_of_points[i][1];
-            
+
             if (!perfectFreehand) {
                 // 使用存储的直线颜色和线宽
                 ctx.lineWidth = p1[3] || line_width; // 使用点中存储的线宽，如果没有则使用默认值
                 ctx.strokeStyle = p1[2] || color; // 使用点中存储的颜色，如果没有则使用默认值
-                
+
                 // 获取样式信息
                 var styleInfo = p1[4] || { style: 'solid', dashPattern: [] };
-                
+
                 // 检查是否为矩形
                 if (styleInfo.style === 'rectangle') {
                     // 绘制矩形
@@ -530,84 +556,84 @@ async function draw_upto_latest_point_async(startLine, startPoint, startStroke){
                     } else {
                         ctx.setLineDash([]);
                     }
-                    
+
                     // 绘制普通直线或虚线
                     ctx.beginPath();
                     ctx.moveTo(p1[0], p1[1]);
                     ctx.lineTo(p2[0], p2[1]);
                     ctx.stroke();
-                    
+
                     // 重置虚线设置，避免影响其他绘制
                     ctx.setLineDash([]);
                 }
             } else {
                 needPerfectDraw = true;
             }
-        } 
+        }
         // 处理普通绘制的线(多个点)
         else {
             ///0,0,0; 0,0,1; 0,1,2 or x+1,x+2,x+3
             //take the 2 previous points in addition to current one at the start of the loop.
-            p2 = arrays_of_points[i][startPoint > 1 ? startPoint-2 : 0];
-            p3 = arrays_of_points[i][startPoint > 0 ? startPoint-1 : 0];
-            for(var j = startPoint; j < arrays_of_points[i].length; j++){
+            p2 = arrays_of_points[i][startPoint > 1 ? startPoint - 2 : 0];
+            p3 = arrays_of_points[i][startPoint > 0 ? startPoint - 1 : 0];
+            for (var j = startPoint; j < arrays_of_points[i].length; j++) {
                 nextPoint = j + 1;//track which point was last drawn so we can pick up where we left off on the next refresh.
                 p1 = p2;
                 p2 = p3;
                 p3 = arrays_of_points[i][j];
-                
-                if(!perfectFreehand){
+
+                if (!perfectFreehand) {
                     // 使用点中存储的线宽和颜色
                     ctx.lineWidth = p3[3] || line_width;
                     ctx.strokeStyle = p3[2] || color;
-                    
-                    draw_path_at_some_point_async(p1[0],p1[1],p2[0],p2[1],p3[0],p3[1], p3[3] || line_width);
+
+                    draw_path_at_some_point_async(p1[0], p1[1], p2[0], p2[1], p3[0], p3[1], p3[3] || line_width);
                 }
-                else {needPerfectDraw = true;}
+                else { needPerfectDraw = true; }
             }
         }
-        
-        if(needPerfectDraw) { 
-                var path = !perfect_cache[i] || is_last_path_and_currently_drawn(i)  
-                    ? new Path2D(
-                            getFreeDrawSvgPath(
-                                arrays_of_points[i],
-                                !is_last_path_and_currently_drawn(i)))
-                    : perfect_cache[i]
-                perfect_cache[i] = path
-                ctx.fill(path);
-        }     
-        if(all_drawing_finished(i)){
-                nextLine++;
-                nextPoint = 0;
-            }
+
+        if (needPerfectDraw) {
+            var path = !perfect_cache[i] || is_last_path_and_currently_drawn(i)
+                ? new Path2D(
+                    getFreeDrawSvgPath(
+                        arrays_of_points[i],
+                        !is_last_path_and_currently_drawn(i)))
+                : perfect_cache[i]
+            perfect_cache[i] = path
+            ctx.fill(path);
+        }
+        if (all_drawing_finished(i)) {
+            nextLine++;
+            nextPoint = 0;
+        }
         startPoint = 0;
     }
     //Draw Calligraphy Strokes one by one starting from the given point
-    for(var i = startStroke; i < strokes.length; i++){
-        nextStroke = i+1;
+    for (var i = startStroke; i < strokes.length; i++) {
+        nextStroke = i + 1;
         strokes[i].draw(WEIGHT, ctx);
     }
 
-	if (fullRedraw) {//finished full redraw, now can unset redraw all flag so no more full redraws until necessary
-    pleaseRedrawEverything = false;
-	fullRedraw = false;
-    nextPoint = strokes.length == 0 ? 0 : nextPoint;//reset next point if out of lines
-    nextStroke = strokes.length == 0 ? 0 : nextStroke;//reset for undo as well
-        if(fullClear){// start again from 0.
+    if (fullRedraw) {//finished full redraw, now can unset redraw all flag so no more full redraws until necessary
+        pleaseRedrawEverything = false;
+        fullRedraw = false;
+        nextPoint = strokes.length == 0 ? 0 : nextPoint;//reset next point if out of lines
+        nextStroke = strokes.length == 0 ? 0 : nextStroke;//reset for undo as well
+        if (fullClear) {// start again from 0.
             nextLine = 0;
             nextPoint = 0;
             nextStroke = 0;
             fullClear = false;
         }
-        
+
         // 如果画布上没有任何笔迹，确保重置所有绘图状态
         if (arrays_of_points.length === 0 && strokes.length === 0) {
             nextLine = 0;
             nextPoint = 0;
             nextStroke = 0;
         }
-	}
+    }
 }
 
 var drawingWithPressurePenOnly = false; // hack for drawing with 2 main pointers when using a presure sensitive pen
@@ -625,23 +651,23 @@ function pointerDownLine(e) {
 
     // 如果使用Surface Pen笔端擦除模式，不进行绘制
     if (!visible || calligraphy || eraserMode || isPenEraserActive) return;
-    
+
     // 对Surface Pen做特殊处理，延迟绘制以避免擦除模式误触发的点
     if (e.pointerType === 'pen') {
         // 只对笔类型的事件阻止默认行为，允许触摸滚动
         e.preventDefault();
-        
+
         // 存储当前笔触信息和时间戳
         var rect = canvas.getBoundingClientRect();
         var x = e.clientX - rect.left;
         var y = e.clientY - rect.top;
         lastPenDownTime = Date.now();
-        
+
         // 清除之前可能存在的待定笔触计时器
         if (pendingPenStrokeTimer) {
             clearTimeout(pendingPenStrokeTimer);
         }
-        
+
         // 暂存笔触信息
         pendingPenStroke = {
             x: x,
@@ -651,24 +677,24 @@ function pointerDownLine(e) {
             e: e,
             button: e.button // 保存按钮信息
         };
-        
+
         // 延迟处理，给系统时间检测笔端擦除按钮
-        pendingPenStrokeTimer = setTimeout(function() {
+        pendingPenStrokeTimer = setTimeout(function () {
             // 检查在延迟期间是否激活了笔端擦除或侧方按键橡皮擦
             if (isPenEraserActive || eraserMode) {
                 pendingPenStroke = null;
                 return;
             }
-            
+
             // 如果是侧方按键（Surface Pen按钮1或2）点击，不绘制
             if (pendingPenStroke.button === 1 || pendingPenStroke.button === 2) {
                 pendingPenStroke = null;
                 return;
             }
-            
+
             // 执行常规的笔触处理
             isPointerDown = true;
-            
+
             if (pendingPenStroke.lineMode) {
                 startPoint = { x: pendingPenStroke.x, y: pendingPenStroke.y };
             } else if (pendingPenStroke.rectangleMode) {
@@ -679,45 +705,45 @@ function pointerDownLine(e) {
                 arrays_of_points.push([[mouseX, mouseY, color, line_width]]);
                 line_type_history.push('L');
                 perfect_cache.push(null);
-                
+
                 // 如果这是完全清空画布后的第一笔，需要立即更新绘制状态
                 if (arrays_of_points.length === 1) {
                     ts_redraw();
                 }
             }
-            
+
             pendingPenStroke = null;
         }, 20); // 延迟20毫秒，这个值可能需要根据实际情况调整
-        
+
         return;
     }
-    
+
     // 非笔触设备的原始处理逻辑（如鼠标）
     if (e.pointerType === 'mouse') {
         e.preventDefault(); // 只对鼠标事件阻止默认行为
     }
-    
+
     isPointerDown = true;
     var rect = canvas.getBoundingClientRect();
     var x = e.clientX - rect.left;
     var y = e.clientY - rect.top;
-    
+
     if (lineMode) {
         startPoint = { x: x, y: y };
         return;
     }
-    
+
     if (rectangleMode) {
         rectangleStartPoint = { x: x, y: y };
         return;
     }
-    
+
     mouseX = x;
     mouseY = y;
     arrays_of_points.push([[mouseX, mouseY, color, line_width]]);
     line_type_history.push('L');
     perfect_cache.push(null);
-    
+
     // 如果这是完全清空画布后的第一笔，需要立即更新绘制状态
     if (arrays_of_points.length === 1) {
         ts_redraw();
@@ -729,21 +755,21 @@ function pointerMoveLine(e) {
     if (e.pointerType === 'touch') {
         return;
     }
-    
+
     if (!visible || !isPointerDown || calligraphy || eraserMode || isPenEraserActive) return;
-    
+
     var rect = canvas.getBoundingClientRect();
     var x = e.clientX - rect.left;
     var y = e.clientY - rect.top;
-    
+
     if (lineMode) {
         if (startPoint) {
             // 清除上一次的临时线条
             secondary_ctx.clearRect(0, 0, secondary_canvas.width, secondary_canvas.height);
-            
+
             // 使用直线专用设置
             update_line_settings();
-            
+
             // 根据当前样式绘制临时线条
             if (lineStyle === 'wavy') {
                 // 绘制波浪线预览，使用当前设置的颜色和线宽
@@ -758,28 +784,28 @@ function pointerMoveLine(e) {
         }
         return;
     }
-    
+
     if (rectangleMode) {
         if (rectangleStartPoint) {
             // 清除上一次的临时矩形
             secondary_ctx.clearRect(0, 0, secondary_canvas.width, secondary_canvas.height);
-            
+
             // 使用矩形专用设置
             update_rectangle_settings();
-            
+
             // 绘制矩形预览
             secondary_ctx.beginPath();
             secondary_ctx.rect(
-                rectangleStartPoint.x, 
-                rectangleStartPoint.y, 
-                x - rectangleStartPoint.x, 
+                rectangleStartPoint.x,
+                rectangleStartPoint.y,
+                x - rectangleStartPoint.x,
                 y - rectangleStartPoint.y
             );
             secondary_ctx.stroke();
         }
         return;
     }
-    
+
     mouseX = x;
     mouseY = y;
     arrays_of_points[arrays_of_points.length - 1].push([mouseX, mouseY, color, line_width]);
@@ -802,57 +828,57 @@ function drawWavyLine(ctx, x1, y1, x2, y2, amplitude, frequency, strokeColor, st
     const dx = x2 - x1;
     const dy = y2 - y1;
     const length = Math.sqrt(dx * dx + dy * dy);
-    
+
     // 计算方向向量
     const dirX = dx / length;
     const dirY = dy / length;
-    
+
     // 计算垂直于方向的向量
     const perpX = -dirY;
     const perpY = dirX;
-    
+
     // 波浪的固定波长(像素)
-    const wavelength = 10; 
-    
+    const wavelength = 10;
+
     // 保存当前绘图状态
     ctx.save();
-    
+
     // 设置线条样式，优先使用传入的颜色和宽度
     ctx.lineWidth = strokeWidth || lineWidth;
     ctx.strokeStyle = strokeColor || lineColor;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    
+
     // 使用路径绘制，而不是直接连接点
     ctx.beginPath();
     ctx.moveTo(x1, y1);
-    
+
     // 通过更多的点来绘制更平滑的曲线
     // 使用更小的步长来确保曲线平滑
-    const stepSize = 0.5; 
+    const stepSize = 0.5;
     const totalSteps = Math.ceil(length / stepSize);
-    
+
     for (let i = 0; i <= totalSteps; i++) {
         const t = i / totalSteps; // 归一化参数 [0, 1]
-        
+
         // 计算当前点在直线上的位置
         const x = x1 + dirX * length * t;
         const y = y1 + dirY * length * t;
-        
+
         // 使用固定波长计算波浪
         // 当前点的位置除以波长，然后乘以2π得到角度
         const angle = (length * t / wavelength) * Math.PI * 2;
-        
+
         // 使用正弦函数创建波浪
         const wave = Math.sin(angle);
-        
+
         // 使用固定振幅 - 减小为原来的一半
-        const fixedAmplitude = amplitude / 2; 
-        
+        const fixedAmplitude = amplitude / 2;
+
         // 应用偏移量垂直于直线方向
         const offsetX = perpX * fixedAmplitude * wave;
         const offsetY = perpY * fixedAmplitude * wave;
-        
+
         // 绘制到当前点
         if (i === 0) {
             ctx.moveTo(x + offsetX, y + offsetY);
@@ -860,7 +886,7 @@ function drawWavyLine(ctx, x1, y1, x2, y2, amplitude, frequency, strokeColor, st
             ctx.lineTo(x + offsetX, y + offsetY);
         }
     }
-    
+
     // 使用曲线属性绘制路径
     ctx.stroke();
     ctx.restore();
@@ -872,26 +898,26 @@ function pointerUpLine(e) {
     if (e.pointerType === 'touch') {
         return;
     }
-    
+
     // 当矩形正在绘制时，不处理普通的指针抬起事件
     if (isDrawingRect) return;
-    
+
     if (!isPointerDown || calligraphy || eraserMode || isPenEraserActive) return;
-    
+
     var rect = canvas.getBoundingClientRect();
     var x = e.clientX - rect.left;
     var y = e.clientY - rect.top;
-    
+
     if (lineMode && startPoint) {
         var endX = x;
         var endY = y;
-        
+
         // 保存当前样式信息
         var currentStyle = {
             style: lineStyle,
             dashPattern: lineDashPattern.slice()
         };
-        
+
         // 保存线条数据 - 直线只需要两个点
         // 为每个点添加颜色和线宽信息，同时添加样式信息
         arrays_of_points.push([
@@ -900,18 +926,18 @@ function pointerUpLine(e) {
         ]);
         line_type_history.push('L');
         perfect_cache.push(null);
-        
+
         // 设置操作类型为添加
         strokeOperation = 'A';
-        
+
         // 清除临时画布
         secondary_ctx.clearRect(0, 0, secondary_canvas.width, secondary_canvas.height);
-        
+
         // 使用ts_redraw重绘整个画布，而不是直接在画布上绘制
         ts_redraw();
-        
+
         startPoint = null;
-        
+
         // 标记笔迹已变化，触发保存
         strokesChanged = true;
         save_strokes_debounced();
@@ -919,12 +945,12 @@ function pointerUpLine(e) {
     } else if (rectangleMode && rectangleStartPoint) {
         var endX = x;
         var endY = y;
-        
+
         // 创建矩形样式信息对象
         var currentStyle = {
             style: 'rectangle' // 标记为矩形
         };
-        
+
         // 保存矩形数据 - 存储矩形左上角和右下角的点
         arrays_of_points.push([
             [rectangleStartPoint.x, rectangleStartPoint.y, rectangleColor, rectangleWidth, currentStyle], // 起点(左上)
@@ -932,18 +958,18 @@ function pointerUpLine(e) {
         ]);
         line_type_history.push("R"); // 使用R表示矩形类型
         perfect_cache.push(null);
-        
+
         // 设置操作类型为添加
         strokeOperation = 'A';
-        
+
         // 清除临时画布
         secondary_ctx.clearRect(0, 0, secondary_canvas.width, secondary_canvas.height);
-        
+
         // 使用ts_redraw重绘整个画布
         ts_redraw();
-        
+
         rectangleStartPoint = null;
-        
+
         // 标记笔迹已变化，触发保存
         strokesChanged = true;
         save_strokes_debounced();
@@ -951,37 +977,37 @@ function pointerUpLine(e) {
     } else {
         // 确保松开鼠标/触控笔时重绘，避免第一笔不显示的问题
         ts_redraw();
-        
+
         // 设置操作类型为添加
         strokeOperation = 'A';
     }
-    
+
     isPointerDown = false;
-    
+
     // 标记笔迹已变化，触发保存
     strokesChanged = true;
     save_strokes_debounced();
 }
 
-document.addEventListener('keyup', function(e) {
+document.addEventListener('keyup', function (e) {
     // alt + Z or z
     if ((e.keyCode == 90 || e.keyCode == 122) && e.altKey) {
-		e.preventDefault();
+        e.preventDefault();
         ts_undo();
     }
     // /
     if (e.key === "c") {
         clear_canvas();
     }
-	// ,
-    if (e.key === ",") {
+    // ,
+    if (e.key === "h") {
         switch_visibility();
     }
-    
+
     // 书法家功能(alt + C)已禁用
-    
+
     // 完美手写功能(alt + X)已禁用
-    
+
     // alt + B or b
     if ((e.key === "b" || e.key === "B") && e.altKey) {
         e.preventDefault();
@@ -1001,7 +1027,7 @@ document.addEventListener('keyup', function(e) {
 // ----------------------------------------- Perfect Freehand -----------------------------------------
 
 function med(A, B) {
-  return [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2];
+    return [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2];
 }
 
 // Trim SVG path data so number are each two decimal points. This
@@ -1009,42 +1035,42 @@ function med(A, B) {
 // with long decimals.
 const TO_FIXED_PRECISION = /(\s?[A-Z]?,?-?[0-9]*\.[0-9]{0,2})(([0-9]|e|-)*)/g;
 
-function getSvgPathFromStroke(points){
-  if (!points.length) {
-    return "";
-  }
+function getSvgPathFromStroke(points) {
+    if (!points.length) {
+        return "";
+    }
 
-  const max = points.length - 1;
+    const max = points.length - 1;
 
-  return points
-    .reduce(
-      (acc, point, i, arr) => {
-        if (i === max) {
-          acc.push(point, med(point, arr[0]), "L", arr[0], "Z");
-        } else {
-          acc.push(point, med(point, arr[i + 1]));
-        }
-        return acc;
-      },
-      ["M", points[0], "Q"],
-    )
-    .join(" ")
-    .replace(TO_FIXED_PRECISION, "$1");
+    return points
+        .reduce(
+            (acc, point, i, arr) => {
+                if (i === max) {
+                    acc.push(point, med(point, arr[0]), "L", arr[0], "Z");
+                } else {
+                    acc.push(point, med(point, arr[i + 1]));
+                }
+                return acc;
+            },
+            ["M", points[0], "Q"],
+        )
+        .join(" ")
+        .replace(TO_FIXED_PRECISION, "$1");
 }
 
 function getFreeDrawSvgPath(inputPoints, complete) {
-  // Consider changing the options for simulated pressure vs real pressure
-  const options = {
-    simulatePressure: inputPoints[0][2] > 1,
-    size: line_width,
-    thinning: 0.6,
-    smoothing: 0.5,
-    streamline: 0.5,
-    easing: (t) => Math.sin((t * Math.PI) / 2), // https://easings.net/#easeOutSine
-    last: complete, // LastCommittedPoint is added on pointerup
-  };
+    // Consider changing the options for simulated pressure vs real pressure
+    const options = {
+        simulatePressure: inputPoints[0][2] > 1,
+        size: line_width,
+        thinning: 0.6,
+        smoothing: 0.5,
+        streamline: 0.5,
+        easing: (t) => Math.sin((t * Math.PI) / 2), // https://easings.net/#easeOutSine
+        last: complete, // LastCommittedPoint is added on pointerup
+    };
 
-  return getSvgPathFromStroke(getStroke(inputPoints, options));
+    return getSvgPathFromStroke(getStroke(inputPoints, options));
 }
 /*
  -------------------------------- Caligrapher ------------------------------------------
@@ -1054,20 +1080,20 @@ function getFreeDrawSvgPath(inputPoints, complete) {
 /* ------------------------------        script.js        -----------------------------*/
 //Modified to work with current canvas and board
 //share the same canvas with pressure drawing
- /*var canvas = document.getElementById('canvas'),
-    width = canvas.width,
-    height = canvas.height,
-    context = canvas.getContext("2d");
-	*/
+/*var canvas = document.getElementById('canvas'),
+   width = canvas.width,
+   height = canvas.height,
+   context = canvas.getContext("2d");
+   */
 
 //FIXME REORGANIZE EBERYTING
 //--- constants ---//
-RESOLUTION = 4; 
+RESOLUTION = 4;
 WEIGHT = 15;
 MIN_MOUSE_DIST = 5;
 SPLIT_THRESHOLD = 8;
 SQUARE_SIZE = 300;
-    
+
 //--- variables ---//
 strokes = [];
 points = [];
@@ -1086,10 +1112,10 @@ errPoint = [];
 
 function drawCurrentPath() {
     secondary_ctx.beginPath();
-    secondary_ctx.moveTo(currentPath[0][0],currentPath[0][1]);
-    for(var i = 1; i<currentPath.length; i++) {
-        secondary_ctx.lineTo(currentPath[i][0],currentPath[i][1]);
-    } 
+    secondary_ctx.moveTo(currentPath[0][0], currentPath[0][1]);
+    for (var i = 1; i < currentPath.length; i++) {
+        secondary_ctx.lineTo(currentPath[i][0], currentPath[i][1]);
+    }
     secondary_ctx.stroke();
 }
 
@@ -1102,55 +1128,55 @@ function pointerDownCaligraphy(e) {
     if (e.pointerType === 'touch') {
         return;
     }
-    
+
     wrapper.classList.add('nopointer');
     if (!e.isPrimary || !calligraphy || isPenEraserActive) { return; }
-    
+
     // 对Surface Pen做特殊处理，延迟绘制以避免擦除模式误触发
     if (e.pointerType === 'pen') {
         // 只对笔类型的事件阻止默认行为，允许触摸滚动
         e.preventDefault();
-        
+
         // 清除之前可能存在的待定笔触计时器
         if (pendingCalligraphyTimer) {
             clearTimeout(pendingCalligraphyTimer);
         }
-        
+
         // 存储当前事件
-        pendingCalligraphyStroke = { 
+        pendingCalligraphyStroke = {
             e: e,
             button: e.button // 保存按钮信息
         };
-        
+
         // 延迟处理，给系统时间检测笔端擦除按钮
-        pendingCalligraphyTimer = setTimeout(function() {
+        pendingCalligraphyTimer = setTimeout(function () {
             // 如果当前处于笔端擦除模式，或侧方按键橡皮擦模式，则不处理
             if (isPenEraserActive || eraserMode) {
                 pendingCalligraphyStroke = null;
                 return;
             }
-            
+
             // 如果是侧方按键（Surface Pen按钮1或2）点击，不绘制
             if (pendingCalligraphyStroke.button === 1 || pendingCalligraphyStroke.button === 2) {
                 pendingCalligraphyStroke = null;
                 return;
             }
-            
+
             // 添加新书法线标记到共享历史
             line_type_history.push('C');
             start_drawing();
-            
+
             pendingCalligraphyStroke = null;
         }, 20); // 延迟20毫秒，这个值可能需要根据实际情况调整
-        
+
         return;
     }
-    
+
     // 非Surface Pen设备的原始处理逻辑
     if (e.pointerType === 'mouse') {
         event.preventDefault(); // 只对鼠标事件阻止默认行为
     }
-    
+
     line_type_history.push('C'); // 将新书法线标记添加到共享历史
     start_drawing();
 }
@@ -1160,17 +1186,17 @@ function pointerMoveCaligraphy(e) {
     if (e.pointerType === 'touch') {
         return;
     }
-    
+
     if (!e.isPrimary || !calligraphy || isPenEraserActive) { return; }
-    if(isPointerDown) {
+    if (isPointerDown) {
         var mousePos = [e.offsetX, e.offsetY];
-        if(currentPath.length != 0) {
-            if(getDist(mousePos,currentPath[currentPath.length-1])>=MIN_MOUSE_DIST)
+        if (currentPath.length != 0) {
+            if (getDist(mousePos, currentPath[currentPath.length - 1]) >= MIN_MOUSE_DIST)
                 currentPath.push(mousePos);
             drawCurrentPath();
         } else
             currentPath.push(mousePos);
-    } 
+    }
 };
 
 function pointerUpCaligraphy(e) {
@@ -1178,19 +1204,19 @@ function pointerUpCaligraphy(e) {
     if (e.pointerType === 'touch') {
         return;
     }
-    
+
     wrapper.classList.remove('nopointer');
     stop_drawing();
     if (!e.isPrimary || !calligraphy || !currentPath.length || isPenEraserActive) { return; }
     points = currentPath;
-    
+
     var curves = fitStroke(points);
-    
+
     strokes.push(new Stroke(curves));
-    
+
     currentPath = [];// clear the array on pointer up so it doesnt enter new lines when clicking on buttons
     secondary_ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);//clear the guide line in second canvas
-    
+
     // 标记笔迹已变化，触发保存
     strokesChanged = true;
     save_strokes_debounced();
@@ -1216,24 +1242,24 @@ function pointerUpCaligraphy(e) {
  * @classDescription        A shape made out of bezier curves. Hopefully connected
  * @param {Array} sections
  */
- function BezierShape(sections) {
+function BezierShape(sections) {
     this.sections = sections;
     this.name = ""; //optional
     this.skeleton = [];
 }
 
-BezierShape.prototype.copy = function() {
+BezierShape.prototype.copy = function () {
     var newSections = [],
         newSkeleton = [];
-    for(var i in this.sections) {
+    for (var i in this.sections) {
         newSections[i] = [];
-        for(var j = 0; j<4; j++) {
+        for (var j = 0; j < 4; j++) {
             newSections[i][j] = this.sections[i][j].slice(0);
         }
     }
-    for(var i in this.skeleton)
+    for (var i in this.skeleton)
         newSkeleton[i] = this.skeleton[i].copy();
-    
+
     var copy = new BezierShape(newSections);
     copy.name = this.name;
     copy.skeleton = newSkeleton;
@@ -1244,57 +1270,57 @@ BezierShape.prototype.copy = function() {
  * Draws the BezierShape NO SCALING OR NUFFIN. Probably only used internally
  * @param {Object} ctx
  */
-BezierShape.prototype.draw = function(ctx) {
+BezierShape.prototype.draw = function (ctx) {
     var x = this.sections[0][0][0], //ew
         y = this.sections[0][0][1];
     ctx.beginPath();
-    ctx.moveTo(x,y);
-    for(var i = 0; i < this.sections.length; i++) {
+    ctx.moveTo(x, y);
+    for (var i = 0; i < this.sections.length; i++) {
         var b = this.sections[i];
-        ctx.bezierCurveTo(b[1][0],b[1][1],b[2][0],b[2][1],b[3][0],b[3][1]);
+        ctx.bezierCurveTo(b[1][0], b[1][1], b[2][0], b[2][1], b[3][0], b[3][1]);
     }
     ctx.closePath();
-    
+
     ctx.fill();
 };
 
-function Bone(points,offset) {
+function Bone(points, offset) {
     this.points = points;
     this.offset = offset;
 }
 
-Bone.prototype.copy = function() {
+Bone.prototype.copy = function () {
     var nP = [];
-    for(var i in this.points)
+    for (var i in this.points)
         nP[i] = this.points[i].slice(0);
-    return new Bone(nP,this.offset);
+    return new Bone(nP, this.offset);
 };
 
-function drawCornerScaled(corner,pos,dir,width,height,ctx) { //FIXME degree, radian inconsistency
+function drawCornerScaled(corner, pos, dir, width, height, ctx) { //FIXME degree, radian inconsistency
     ctx.save();
-    ctx.translate(pos[0],pos[1]);
+    ctx.translate(pos[0], pos[1]);
     ctx.rotate(dir);
-    ctx.scale(height,width);
-    
+    ctx.scale(height, width);
+
     corner.draw(ctx);
     ctx.restore();
 }
 
-function drawCorner(corner,pos,dir,width,ctx) {
-    drawCornerScaled(corner,pos,dir,width,width,ctx);
+function drawCorner(corner, pos, dir, width, ctx) {
+    drawCornerScaled(corner, pos, dir, width, width, ctx);
 }
 
-function drawDICorner(corner,pos,dir,width,ctx) {
-    if(corner == null)
+function drawDICorner(corner, pos, dir, width, ctx) {
+    if (corner == null)
         return;
-    
+
     // corner rotation
     var pos = attrs.point,
-        inAngle = attrs.inAngle-corner.skeleton["armA"].offset, //This is so the whole corner is rotated //FIXME a little gross
+        inAngle = attrs.inAngle - corner.skeleton["armA"].offset, //This is so the whole corner is rotated //FIXME a little gross
         outAngle = attrs.outAngle,
-        c = setBoneAngles(corner,[["armB",(outAngle-inAngle)/180*Math.PI]]); 
+        c = setBoneAngles(corner, [["armB", (outAngle - inAngle) / 180 * Math.PI]]);
 
-    drawCorner(c,pos,inAngle/180*Math.PI,width,ctx);
+    drawCorner(c, pos, inAngle / 180 * Math.PI, width, ctx);
 }
 
 
@@ -1303,79 +1329,79 @@ function drawDICorner(corner,pos,dir,width,ctx) {
 kappa = 0.5522847498;
 // Circle-ish thing. Not a corner.
 CIRCLE = new BezierShape([
-    [[-5,0],[-5,-5*kappa],[-5*kappa,-5],[0,-5]],
-    [[0,-5],[5*kappa,-5],[5,-5*kappa],[5,0]],
-    [[5,0],[5,5*kappa],[5*kappa,5],[0,5]],
-    [[0,5],[-5*kappa,5],[-5,5*kappa],[-5,0]]
+    [[-5, 0], [-5, -5 * kappa], [-5 * kappa, -5], [0, -5]],
+    [[0, -5], [5 * kappa, -5], [5, -5 * kappa], [5, 0]],
+    [[5, 0], [5, 5 * kappa], [5 * kappa, 5], [0, 5]],
+    [[0, 5], [-5 * kappa, 5], [-5, 5 * kappa], [-5, 0]]
 ]);
-                
-        
+
+
 C1 = new BezierShape([
-     [[15,6],  [-3,4],     [-11,5],   [-20,0]]
-    ,[[-20,0],  [-15,-5],  [4,-9],    [13,-5]]
-    ,[[13,-5], [20,0],     [21,8],    [15,6]]
+    [[15, 6], [-3, 4], [-11, 5], [-20, 0]]
+    , [[-20, 0], [-15, -5], [4, -9], [13, -5]]
+    , [[13, -5], [20, 0], [21, 8], [15, 6]]
 ]);
 C1.name = "C1";
 
 C2 = new BezierShape([
-     [[2,5],    [-2,5],     [-12,2],    [-13,-2]]
-    ,[[-13,2],  [-7,-5],    [0,-5],     [2,-5]]
-    ,[[2,-5],   [3,-5],     [3,5],      [2,5]]
+    [[2, 5], [-2, 5], [-12, 2], [-13, -2]]
+    , [[-13, 2], [-7, -5], [0, -5], [2, -5]]
+    , [[2, -5], [3, -5], [3, 5], [2, 5]]
 ]);
 C2.name = "C2";
 
 C3 = new BezierShape([
-    [[-8,5],    [-10,5],    [-10,-5],   [-8,-5]]
-   ,[[-8,-5],   [3,-5],     [15,0],     [15,5]]
-   ,[[15,5],    [10,7],     [2,5],      [-8,5]]
+    [[-8, 5], [-10, 5], [-10, -5], [-8, -5]]
+    , [[-8, -5], [3, -5], [15, 0], [15, 5]]
+    , [[15, 5], [10, 7], [2, 5], [-8, 5]]
 ]);
 C3.name = "C3";
 
 C4 = new BezierShape([
-    [[0,5],     [-2,5],     [-4,7],     [-5,8]]
-   ,[[-5,8],    [-7,10],    [-9,12],    [-8,5]]
-   ,[[-8,5],    [-7,3],     [-5,-5],    [0,-5]]
-   ,[[0,-5],    [3,-5],     [3,5],      [0,5]]
+    [[0, 5], [-2, 5], [-4, 7], [-5, 8]]
+    , [[-5, 8], [-7, 10], [-9, 12], [-8, 5]]
+    , [[-8, 5], [-7, 3], [-5, -5], [0, -5]]
+    , [[0, -5], [3, -5], [3, 5], [0, 5]]
 ]);
 C4.name = "C4";
 
 C5 = new BezierShape([
-    [[0,-5],    [-3,-5],    [-3,5],     [0,5]]
-   ,[[0,5],     [8,5],      [10,5],     [15,2]]
-   ,[[15,2],    [12,-2],    [-2,-5],    [0,-5]]
+    [[0, -5], [-3, -5], [-3, 5], [0, 5]]
+    , [[0, 5], [8, 5], [10, 5], [15, 2]]
+    , [[15, 2], [12, -2], [-2, -5], [0, -5]]
 ]);
 C5.name = "C5";
 
 C6 = new BezierShape([
-    [[0,5],     [-6,6],     [-8,7],     [-12,8]]
-    ,[[-12,8],  [-13,9],    [-13,7],    [-12,6]]
-    ,[[-12,6],  [-10,3],    [-5,-4],    [0,-5]]
-    ,[[0,-5],   [3,-5],     [3,5],      [0,5]]
+    [[0, 5], [-6, 6], [-8, 7], [-12, 8]]
+    , [[-12, 8], [-13, 9], [-13, 7], [-12, 6]]
+    , [[-12, 6], [-10, 3], [-5, -4], [0, -5]]
+    , [[0, -5], [3, -5], [3, 5], [0, 5]]
 ]);
 C6.name = "C6";
 
 C7 = new BezierShape([
-    [[-5,-5],[0,-5],[11,-7],[15,-6]]
-    ,[[15,-6],[17,-5],[2,4],[1,5]]
-    ,[[1,5],[0,5],[0,5],[-5,5]]
-    ,[[-5,5],[-8,5],[-8,-5],[-5,-5]]
+    [[-5, -5], [0, -5], [11, -7], [15, -6]]
+    , [[15, -6], [17, -5], [2, 4], [1, 5]]
+    , [[1, 5], [0, 5], [0, 5], [-5, 5]]
+    , [[-5, 5], [-8, 5], [-8, -5], [-5, -5]]
 ]);
 C7.name = "C7";
 
-SI_CORNERS = [C1,C2,C3,C4,C5,C6,C7];
+SI_CORNERS = [C1, C2, C3, C4, C5, C6, C7];
 
 C8 = new BezierShape([
-    [[-13,3],   [-20,3],    [-20,-3],   [-13,-3]],
-    [[-13,-3],  [-5,-5],    [-6,-7],    [-4,-8]],
-    [[-4,-8],   [0,-8],     [12,3],     [7,5]],
-    [[7,5],     [5,6],      [5,8],      [3,13]],
-    [[3,13],    [3,20],     [-3,20],    [-3,13]],
-    [[-3,13],   [-5,5],     [-10,5],    [-13,3]]
+    [[-13, 3], [-20, 3], [-20, -3], [-13, -3]],
+    [[-13, -3], [-5, -5], [-6, -7], [-4, -8]],
+    [[-4, -8], [0, -8], [12, 3], [7, 5]],
+    [[7, 5], [5, 6], [5, 8], [3, 13]],
+    [[3, 13], [3, 20], [-3, 20], [-3, 13]],
+    [[-3, 13], [-5, 5], [-10, 5], [-13, 3]]
 ]);
 C8.name = "C8";
-C8.skeleton["armA"] = new Bone([[0,0],[0,1],[0,2],[0,3],[1,0],[1,1],[5,2],[5,3]],0);
-C8.skeleton["armB"] = new Bone([[4,0],[4,1],[4,2],[4,3],[3,2],[3,3],[5,0],[5,1],
-                                [1,2],[1,3],[2,0],[2,1]],90);
+C8.skeleton["armA"] = new Bone([[0, 0], [0, 1], [0, 2], [0, 3], [1, 0], [1, 1], [5, 2], [5, 3]], 0);
+C8.skeleton["armB"] = new Bone([[4, 0], [4, 1], [4, 2], [4, 3], [3, 2], [3, 3], [5, 0], [5, 1],
+[1, 2], [1, 3], [2, 0], [2, 1]], 90);
 
 C8R = horizFlipCopy(C8);
 
@@ -1391,51 +1417,51 @@ C9.skeleton["armA"] = new Bone([[0,0],[0,1],[0,2],[0,3],[1,0],[1,1],[4,2],[4,3]]
 C9.skeleton["armB"] = new Bone([[3,0],[3,1],[3,2],[3,3],[4,0],[4,1],[2,2],[2,3]],180);*/
 
 C9 = new BezierShape([ //note, 90º angles look a little weird
-   [[-4,-12],[-4,-15],[4,-15],[5,-12]],
-   [[5,-12],[5,-2],[6,3],[1,8]],
-   [[-1,8],[-3,11],[-4,2],[-12,-5]],
-   [[-12,-5],[-15,-7],[-15,-9],[-10,-8]],
-   [[-10,-8],[-6,-8],[-4,-7],[-4,-12]] 
+    [[-4, -12], [-4, -15], [4, -15], [5, -12]],
+    [[5, -12], [5, -2], [6, 3], [1, 8]],
+    [[-1, 8], [-3, 11], [-4, 2], [-12, -5]],
+    [[-12, -5], [-15, -7], [-15, -9], [-10, -8]],
+    [[-10, -8], [-6, -8], [-4, -7], [-4, -12]]
 ]);
 C9.name = "C9";
-C9.skeleton["armA"] = new Bone([[0,0],[0,1],[0,2],[0,3],[1,0],[1,1],[4,2],[4,3],[1,2]],90); //not that this actually matters
-C9.skeleton["armB"] = new Bone([[3,0],[3,1],[3,2],[3,3],[4,0],[4,1],[2,2],[2,3]],210);
+C9.skeleton["armA"] = new Bone([[0, 0], [0, 1], [0, 2], [0, 3], [1, 0], [1, 1], [4, 2], [4, 3], [1, 2]], 90); //not that this actually matters
+C9.skeleton["armB"] = new Bone([[3, 0], [3, 1], [3, 2], [3, 3], [4, 0], [4, 1], [2, 2], [2, 3]], 210);
 
 C9R = vertFlipCopy(C9);
 
 C10 = new BezierShape([
-    [[-5,5],[-6,5],[-6,-5],[-5,-5]],
-    [[-5,-5],[-2,-7],[2,-7],[5,-5]],
-    [[5,-5],[6,-5],[6,5],[5,5]],
-    [[5,5],[2,7],[-2,7],[-5,5]]
+    [[-5, 5], [-6, 5], [-6, -5], [-5, -5]],
+    [[-5, -5], [-2, -7], [2, -7], [5, -5]],
+    [[5, -5], [6, -5], [6, 5], [5, 5]],
+    [[5, 5], [2, 7], [-2, 7], [-5, 5]]
 ]);
 
 C10.name = "C10";
-C10.skeleton["armA"] = new Bone([[0,0],[0,1],[0,2],[0,3],[1,0],[1,2],[3,2],[3,3]],0);
-C10.skeleton["armB"] = new Bone([[2,0],[2,1],[2,2],[2,3],[3,0],[3,1],[1,2],[1,3]],0);
+C10.skeleton["armA"] = new Bone([[0, 0], [0, 1], [0, 2], [0, 3], [1, 0], [1, 2], [3, 2], [3, 3]], 0);
+C10.skeleton["armB"] = new Bone([[2, 0], [2, 1], [2, 2], [2, 3], [3, 0], [3, 1], [1, 2], [1, 3]], 0);
 
-function linInterpolate(y0,y1,mu) {
-    return y0*(1-mu) + y1*mu;
+function linInterpolate(y0, y1, mu) {
+    return y0 * (1 - mu) + y1 * mu;
 }
 
-function cosInterpolate(y0,y1,mu) {
-    var mu2 = (1-Math.cos(mu*Math.PI))/2;
-    return y0*(1-mu2)+y1*mu2;
+function cosInterpolate(y0, y1, mu) {
+    var mu2 = (1 - Math.cos(mu * Math.PI)) / 2;
+    return y0 * (1 - mu2) + y1 * mu2;
 }
 
 /**
  * Returns a function that linearly interpolates between the values given
  */
 function linFunction(points) {
-    return function(t) {
-        if(t==0)
+    return function (t) {
+        if (t == 0)
             return points[0][1];
-        for(var i = 1; i<points.length; i++) {
-            var p0 = points[i-1],
+        for (var i = 1; i < points.length; i++) {
+            var p0 = points[i - 1],
                 p1 = points[i];
-            if(t<=p1[0] && t>p0[0]) {
-                var mu = (t-p0[0])/(p1[0]-p0[0]);
-                return linInterpolate(p0[1],p1[1],mu); //cubic might be better
+            if (t <= p1[0] && t > p0[0]) {
+                var mu = (t - p0[0]) / (p1[0] - p0[0]);
+                return linInterpolate(p0[1], p1[1], mu); //cubic might be better
             }
         }
     };
@@ -1445,15 +1471,15 @@ function linFunction(points) {
  * Returns a function that cosine interpolates between the values given
  */
 function cosFunction(points) {
-    return function(t) {
-        if(t==0)
+    return function (t) {
+        if (t == 0)
             return points[0][1];
-        for(var i = 1; i<points.length; i++) {
-            var p0 = points[i-1],
+        for (var i = 1; i < points.length; i++) {
+            var p0 = points[i - 1],
                 p1 = points[i];
-            if(t<=p1[0] && t>p0[0]) {
-                var mu = (t-p0[0])/(p1[0]-p0[0]);
-                return cosInterpolate(p0[1],p1[1],mu); //cubic might be better
+            if (t <= p1[0] && t > p0[0]) {
+                var mu = (t - p0[0]) / (p1[0] - p0[0]);
+                return cosInterpolate(p0[1], p1[1], mu); //cubic might be better
             }
         }
     };
@@ -1469,51 +1495,51 @@ function test(t) {
 }
 
 //These are ugly
-SEGMENT_I = cosFunction([[0,1],[.5,.7],[1,1]]); //FIXME, sometimes extends past corners
-SEGMENT_II = linFunction([[0,1],[.5,.8],[1,.2]]); //kinda ugly :||
-SEGMENT_III = linFunction([[0,.2],[.5,.8],[1,1]]);
+SEGMENT_I = cosFunction([[0, 1], [.5, .7], [1, 1]]); //FIXME, sometimes extends past corners
+SEGMENT_II = linFunction([[0, 1], [.5, .8], [1, .2]]); //kinda ugly :||
+SEGMENT_III = linFunction([[0, .2], [.5, .8], [1, 1]]);
 
-HEN = [C2,SEGMENT_I,C3];
-SHU1 = [C4,SEGMENT_I,C5];
-SHU2 = [C4,SEGMENT_II];
-NA = [C6,SEGMENT_I,C7];
+HEN = [C2, SEGMENT_I, C3];
+SHU1 = [C4, SEGMENT_I, C5];
+SHU2 = [C4, SEGMENT_II];
+NA = [C6, SEGMENT_I, C7];
 DIAN = [C1];
-OTHER = [C4,SEGMENT_II];
+OTHER = [C4, SEGMENT_II];
 
 function RAND(t) {
     return Math.random();
 }
 
-function setBoneAngles(c,dirList) {
+function setBoneAngles(c, dirList) {
     var c = c.copy();
-    
-    for(var i in dirList) {
+
+    for (var i in dirList) {
         var dir = dirList[i][1],
             bone = dirList[i][0];
-        for(var j in c.skeleton[bone].points) {
+        for (var j in c.skeleton[bone].points) {
             var p = c.skeleton[bone].points[j],
-                offset = c.skeleton[bone].offset/180*Math.PI,
+                offset = c.skeleton[bone].offset / 180 * Math.PI,
                 vec = c.sections[p[0]][p[1]];
             //console.log(vec);
             //console.log(dir-offset);
             //console.log(rotate(vec,dir-offset));
-            c.sections[p[0]][p[1]] = rotate(vec,dir-offset);
-            
+            c.sections[p[0]][p[1]] = rotate(vec, dir - offset);
+
         }
     }
-    
+
     return c;
 }
 
 function vertFlipCopy(c) {
     var c = c.copy();
-    
-    for(var i in c.sections){
-        for(var j in c.sections[i]) {
+
+    for (var i in c.sections) {
+        for (var j in c.sections[i]) {
             c.sections[i][j][1] = -c.sections[i][j][1];
         }
     }
-    for(var i in c.skeleton) {
+    for (var i in c.skeleton) {
         c.skeleton[i].offset = 360 - c.skeleton[i].offset;
     }
     return c
@@ -1521,15 +1547,15 @@ function vertFlipCopy(c) {
 
 function horizFlipCopy(c) {
     var c = c.copy();
-    
-    for(var i in c.sections){
-        for(var j in c.sections[i]) {
+
+    for (var i in c.sections) {
+        for (var j in c.sections[i]) {
             c.sections[i][j][0] = -c.sections[i][j][0];
         }
     }
-    for(var i in c.skeleton) {
+    for (var i in c.skeleton) {
         c.skeleton[i].offset = 180 - c.skeleton[i].offset;
-        if(c.skeleton[i].offset<0)
+        if (c.skeleton[i].offset < 0)
             c.skeleton[i].offset += 360;
     }
     return c
@@ -1546,28 +1572,28 @@ function horizFlipCopy(c) {
  * @param {Numeric} t   Location along bezier curve [0,1]  
  * @return {Array}      Returns the point on the bezier curve
  */
- function bezierPos(ps, t) {
+function bezierPos(ps, t) {
     var size = ps.length;
-    if(size == 1)
+    if (size == 1)
         return ps[0];
-        
-        //WARNING, changed direction on this. May cause problems
-    var bx = (t) * bezierPos(ps.slice(1),t)[0] + (1-t) * bezierPos(ps.slice(0,size-1),t)[0],
-        by = (t) * bezierPos(ps.slice(1),t)[1] + (1-t) * bezierPos(ps.slice(0,size-1),t)[1];
-        
-    return [bx,by];
+
+    //WARNING, changed direction on this. May cause problems
+    var bx = (t) * bezierPos(ps.slice(1), t)[0] + (1 - t) * bezierPos(ps.slice(0, size - 1), t)[0],
+        by = (t) * bezierPos(ps.slice(1), t)[1] + (1 - t) * bezierPos(ps.slice(0, size - 1), t)[1];
+
+    return [bx, by];
 }
 
 function bezierSlo(ps, t) {
     var size = ps.length;
-    
-    if(size == 1)
+
+    if (size == 1)
         return ps[0];
-        
-    var dx = bezierPos(ps.slice(0,size-1),t)[0] - bezierPos(ps.slice(1),t)[0] ,
-        dy = bezierPos(ps.slice(0,size-1),t)[1] - bezierPos(ps.slice(1),t)[1];
-        
-    return dy/dx;
+
+    var dx = bezierPos(ps.slice(0, size - 1), t)[0] - bezierPos(ps.slice(1), t)[0],
+        dy = bezierPos(ps.slice(0, size - 1), t)[1] - bezierPos(ps.slice(1), t)[1];
+
+    return dy / dx;
 }
 
 // Bezier function class. Meant simply as a math thing (no drawing or any bullshit)
@@ -1576,125 +1602,125 @@ function bezierSlo(ps, t) {
  * @return {Bezier} Returns the bezier function
  */
 function Bezier(controlPoints) {
-    this.order = controlPoints.length-1; //useful? or obtuse? //Answer: not used anywhere
-    this.controlPoints = controlPoints; 
+    this.order = controlPoints.length - 1; //useful? or obtuse? //Answer: not used anywhere
+    this.controlPoints = controlPoints;
 }
 
-Bezier.prototype.getStart = function() {
+Bezier.prototype.getStart = function () {
     return this.controlPoints[0];
 };
 
-Bezier.prototype.getEnd = function() {
+Bezier.prototype.getEnd = function () {
     return this.controlPoints[this.order];
 };
 
-Bezier.prototype.getPoint = function(t) {
-    return bezierPos(this.controlPoints,t);
+Bezier.prototype.getPoint = function (t) {
+    return bezierPos(this.controlPoints, t);
 };
 
-Bezier.prototype.drawPlain = function(ctx) {
-    if(this.order == 3) {
+Bezier.prototype.drawPlain = function (ctx) {
+    if (this.order == 3) {
         var c = this.controlPoints;
         ctx.beginPath();
-        ctx.moveTo(c[0][0],c[0][1]);
-        ctx.bezierCurveTo(c[1][0],c[1][1],c[2][0],c[2][1],c[3][0],c[3][1]);
+        ctx.moveTo(c[0][0], c[0][1]);
+        ctx.bezierCurveTo(c[1][0], c[1][1], c[2][0], c[2][1], c[3][0], c[3][1]);
         ctx.stroke();
     }
-        
+
 };
 
-Bezier.prototype.getDerivativeVector = function(t) {
+Bezier.prototype.getDerivativeVector = function (t) {
     var size = 0.001,
         p0 = null,
         p1 = null;
-    if(t<size) {
-        p0 = bezierPos(this.controlPoints,t);
-        p1 = bezierPos(this.controlPoints,t+2*size);
-    } else if (1-t<size) {
-        p0 = bezierPos(this.controlPoints,t-2*size);
-        p1 = bezierPos(this.controlPoints,t);
+    if (t < size) {
+        p0 = bezierPos(this.controlPoints, t);
+        p1 = bezierPos(this.controlPoints, t + 2 * size);
+    } else if (1 - t < size) {
+        p0 = bezierPos(this.controlPoints, t - 2 * size);
+        p1 = bezierPos(this.controlPoints, t);
     } else {
-        p0 = bezierPos(this.controlPoints,t-size);
-        p1 = bezierPos(this.controlPoints,t+size); 
+        p0 = bezierPos(this.controlPoints, t - size);
+        p1 = bezierPos(this.controlPoints, t + size);
     }
-    return sub(p1,p0);
+    return sub(p1, p0);
 };
 
-Bezier.prototype.getTangentVector = function(t) {
+Bezier.prototype.getTangentVector = function (t) {
     return normalize(this.getDerivativeVector(t));
 };
 
-Bezier.prototype.getLength = function() {
+Bezier.prototype.getLength = function () {
     var res = 50, //FIXME: can't use resolution :|| that would be circular
         len = 0,
         point = this.getStart();
-    for(var i = 0; i <= res; i++){
-        var t = i/res;
-        len += getDist(point,this.getPoint(t));
+    for (var i = 0; i <= res; i++) {
+        var t = i / res;
+        len += getDist(point, this.getPoint(t));
         point = this.getPoint(t);
     }
     return len;
 };
 
-Bezier.prototype.getLengthAt = function(t) {
-    return getLengthAtWithStep(t,0.01);
+Bezier.prototype.getLengthAt = function (t) {
+    return getLengthAtWithStep(t, 0.01);
 };
 
-Bezier.prototype.getLengthAtWithStep = function(t,s) {
+Bezier.prototype.getLengthAtWithStep = function (t, s) {
     var tt = 0,
         len = 0,
         point = this.getStart();
-    while(tt <= t) {
+    while (tt <= t) {
         var newPoint = this.getPoint(tt);
-        len += getDist(point,newPoint);
+        len += getDist(point, newPoint);
         point = newPoint;
         t += s;
     }
     return len;
 };
 
-Bezier.prototype.getPointByLength = function(l) {//doesn't actually return a point. bad name
+Bezier.prototype.getPointByLength = function (l) {//doesn't actually return a point. bad name
     var t = 0,
         len = 0,
         point = this.getStart();
-    while(len < l) {
+    while (len < l) {
         var newPoint = this.getPoint(t);
-        len += getDist(point,newPoint);
+        len += getDist(point, newPoint);
         point = newPoint;
         t += 0.01;
-        if(t>=1)
+        if (t >= 1)
             return 1; //so we don't extrapolate or anything stupid
     }
     return t;
 };
 
-Bezier.prototype.getPointByLengthBack = function(l) {//doesn't actually return a point. bad name
+Bezier.prototype.getPointByLengthBack = function (l) {//doesn't actually return a point. bad name
     var t = 1,
         len = 0,
         point = this.getEnd();
-    while(len < l) {
+    while (len < l) {
         var newPoint = this.getPoint(t)
-        len += getDist(point,newPoint);
+        len += getDist(point, newPoint);
         point = newPoint;
         t -= 0.01;
-        if(t<=0)
+        if (t <= 0)
             return 1; //so we don't extrapolate or anything stupid
     }
     return t;
 };
 
-function getSlopeVector(slope,length) {
+function getSlopeVector(slope, length) {
     var x = length * Math.cos(Math.atan(slope)),
         y = length * Math.sin(Math.atan(slope));
-    return [x,y];
+    return [x, y];
 }
 
-function scalePoint(s0,s1,p0,p1,v) { //Could probs be simplified, also currently not used
-    var xScale = (p1[0]-p0[0])/(s1[0]-s0[0]), //scaling factos
-        yScale = (p1[1]-p0[1])/(s1[1]-s0[1]),
-        x = p0[0]+xScale*(v[0]-s0[0]), //Scaled x and y
-        y = p0[1]+yScale*(v[1]-s0[1]);
-    return [x,y];
+function scalePoint(s0, s1, p0, p1, v) { //Could probs be simplified, also currently not used
+    var xScale = (p1[0] - p0[0]) / (s1[0] - s0[0]), //scaling factos
+        yScale = (p1[1] - p0[1]) / (s1[1] - s0[1]),
+        x = p0[0] + xScale * (v[0] - s0[0]), //Scaled x and y
+        y = p0[1] + yScale * (v[1] - s0[1]);
+    return [x, y];
 }
 
 //Draws a bezier curve scaled between the two points (good idea? bad idea? dunno.) 
@@ -1710,214 +1736,214 @@ function scalePoint(s0,s1,p0,p1,v) { //Could probs be simplified, also currently
 //      but the width contour gets a bit bunched up. solution: instead of wF(t), use wF(currentLength/totalLength)
 
 //FIXME Ugly (code)
-function drawBezier(curve,wid,wF,ctx) { 
+function drawBezier(curve, wid, wF, ctx) {
     var length = curve.getLength(),
-        numPoints = Math.round(length/RESOLUTION),
+        numPoints = Math.round(length / RESOLUTION),
         leftPoints = [],
         rightPoints = [],
-        currentPoint = sub(scale(curve.getStart(),2),curve.controlPoints[1]);
+        currentPoint = sub(scale(curve.getStart(), 2), curve.controlPoints[1]);
 
-    for(var i = 0; i <= numPoints; i++){
-        var t = i/numPoints,
+    for (var i = 0; i <= numPoints; i++) {
+        var t = i / numPoints,
             centerPoint = curve.getPoint(t)
-            offset = scale(perpNorm(sub(centerPoint,currentPoint)),wF(t)*wid/2);
-            
-        leftPoints.push(add(centerPoint,offset));
-        rightPoints.push(sub(centerPoint,offset));
+        offset = scale(perpNorm(sub(centerPoint, currentPoint)), wF(t) * wid / 2);
+
+        leftPoints.push(add(centerPoint, offset));
+        rightPoints.push(sub(centerPoint, offset));
         currentPoint = centerPoint;
 
     }
     //Drawing the polygon
     var s = leftPoints[0];
     ctx.beginPath();
-    ctx.moveTo(s[0],s[1]); //starting from start center
-    for(var i = 0; i < leftPoints.length; i++){
+    ctx.moveTo(s[0], s[1]); //starting from start center
+    for (var i = 0; i < leftPoints.length; i++) {
         var p = leftPoints[i];
-        ctx.lineTo(p[0],p[1]);
+        ctx.lineTo(p[0], p[1]);
     }
-    for(var i = rightPoints.length-1; i >= 0; i--){
+    for (var i = rightPoints.length - 1; i >= 0; i--) {
         var p = rightPoints[i];
-        ctx.lineTo(p[0],p[1]);
+        ctx.lineTo(p[0], p[1]);
     }
     ctx.closePath();
     ctx.fill();
 }
 
-function drawBezierTransformed(p0,p1,curve,wid,wF,ctx) {
+function drawBezierTransformed(p0, p1, curve, wid, wF, ctx) {
     var s0 = curve.getStart(),
         s1 = curve.getEnd(),
-        xScale = (p1[0]-p0[0])/(s1[0]-s0[0]), //scaling factos
-        yScale = (p1[1]-p0[1])/(s1[1]-s0[1]),
+        xScale = (p1[0] - p0[0]) / (s1[0] - s0[0]), //scaling factos
+        yScale = (p1[1] - p0[1]) / (s1[1] - s0[1]),
         controlPoints = [];
-        
-    for(var i = 0; i <= curve.order; i++) {
+
+    for (var i = 0; i <= curve.order; i++) {
         var p = curve.controlPoints[i],
-            x = p0[0]+xScale*(p[0]-s0[0]), //Scaled x and y
-            y = p0[1]+yScale*(p[1]-s0[1]);
-        controlPoints[i] = [x,y];
+            x = p0[0] + xScale * (p[0] - s0[0]), //Scaled x and y
+            y = p0[1] + yScale * (p[1] - s0[1]);
+        controlPoints[i] = [x, y];
     }
-    drawBezier(new Bezier(controlPoints),wid,wF,ctx);
-        
+    drawBezier(new Bezier(controlPoints), wid, wF, ctx);
+
 }
 
 /* ------------------------------        curveFitting.js        ------------------------------*/
 function getLengths(chord) {
     var lens = [0]; //first is 0
-    
-    for(var i = 1; i<chord.length; i++)
-        lens[i] = lens[i-1]+getDist(chord[i],chord[i-1]);
+
+    for (var i = 1; i < chord.length; i++)
+        lens[i] = lens[i - 1] + getDist(chord[i], chord[i - 1]);
     return lens;
 }
 
 function normalizeList(lens) {
-    for(var i = 1; i<lens.length; i++)
-        lens[i] = lens[i]/lens[lens.length-1];
+    for (var i = 1; i < lens.length; i++)
+        lens[i] = lens[i] / lens[lens.length - 1];
     return lens;
 }
 
 function findListMax(list) {
     var iMax = 0,
         max = list[0];
-    for(var i = 0; i<list.length; i++) {
-        if(max<list[i]) {
+    for (var i = 0; i < list.length; i++) {
+        if (max < list[i]) {
             iMax = i;
             max = list[i];
         }
     }
-    return [iMax,max];       
+    return [iMax, max];
 }
 
 function findListMin(list) {
     var iMin = 0,
         min = list[0];
-    for(var i in list) {
-        if(min>list[i]) {
+    for (var i in list) {
+        if (min > list[i]) {
             iMin = i;
             min = list[i];
         }
     }
-    return [iMin,min];
+    return [iMin, min];
 }
 
 function parameterize(chord) {
     /*var lens = getLengths(chord);
     return normalizeList(lens);*/
     var lens = [0]; //first is 0
-    
-    for(var i = 1; i<chord.length; i++)
-        lens[i] = lens[i-1]+getDist(chord[i],chord[i-1]);
-    for(var i = 1; i<chord.length; i++)
-        lens[i] = lens[i]/(lens[chord.length-1]);
+
+    for (var i = 1; i < chord.length; i++)
+        lens[i] = lens[i - 1] + getDist(chord[i], chord[i - 1]);
+    for (var i = 1; i < chord.length; i++)
+        lens[i] = lens[i] / (lens[chord.length - 1]);
     return lens;
-    
+
 }
 
 function parameterizeByLength(chord, curve) {
     var lens = getLengths(chord),
         ts = [0];
-    for(var i = 1; i<chord.length; i++) {
+    for (var i = 1; i < chord.length; i++) {
         ts[i] = curve.getPointByLength(lens[i]);
     }
     return normalizeList(ts);
 }
 
-function coefficientHelper(chord,ts) { //bad name
+function coefficientHelper(chord, ts) { //bad name
     var c00 = 0, c01 = 0, c02x = 0, c02y = 0,
         c10 = 0, c11 = 0, c12x = 0, c12y = 0,
         x0 = chord[0][0],
         y0 = chord[0][1],
-        x3 = chord[chord.length-1][0],
-        y3 = chord[chord.length-1][1];
-        
-    for(var i = 0; i<ts.length; i++) {
+        x3 = chord[chord.length - 1][0],
+        y3 = chord[chord.length - 1][1];
+
+    for (var i = 0; i < ts.length; i++) {
         var t = ts[i],
             px = chord[i][0],
             py = chord[i][1];
-        c00 += 3*Math.pow(t,2)*Math.pow(1-t,4); //I'm doing it the dumb way cause it's easier to read
-        c01 += 3*Math.pow(t,3)*Math.pow(1-t,3);
-        c02x += t*Math.pow(1-t,2)*(px - Math.pow(1-t,3) * x0 - Math.pow(t,3) * x3);
-        c02y += t*Math.pow(1-t,2)*(py - Math.pow(1-t,3) * y0 - Math.pow(t,3) * y3);
-        
-        c10 += 3*Math.pow(t,3)*Math.pow(1-t,3);
-        c11 += 3*Math.pow(t,4)*Math.pow(1-t,2);
-        c12x += Math.pow(t,2)*(1-t)*(px - Math.pow(1-t,3) * x0 - Math.pow(t,3) * x3);
-        c12y += Math.pow(t,2)*(1-t)*(py - Math.pow(1-t,3) * y0 - Math.pow(t,3) * y3);
+        c00 += 3 * Math.pow(t, 2) * Math.pow(1 - t, 4); //I'm doing it the dumb way cause it's easier to read
+        c01 += 3 * Math.pow(t, 3) * Math.pow(1 - t, 3);
+        c02x += t * Math.pow(1 - t, 2) * (px - Math.pow(1 - t, 3) * x0 - Math.pow(t, 3) * x3);
+        c02y += t * Math.pow(1 - t, 2) * (py - Math.pow(1 - t, 3) * y0 - Math.pow(t, 3) * y3);
+
+        c10 += 3 * Math.pow(t, 3) * Math.pow(1 - t, 3);
+        c11 += 3 * Math.pow(t, 4) * Math.pow(1 - t, 2);
+        c12x += Math.pow(t, 2) * (1 - t) * (px - Math.pow(1 - t, 3) * x0 - Math.pow(t, 3) * x3);
+        c12y += Math.pow(t, 2) * (1 - t) * (py - Math.pow(1 - t, 3) * y0 - Math.pow(t, 3) * y3);
     }
-    return [[[c00,c01,c02x],[c10,c11,c12x]],
-            [[c00,c01,c02y],[c10,c11,c12y]]];
+    return [[[c00, c01, c02x], [c10, c11, c12x]],
+    [[c00, c01, c02y], [c10, c11, c12y]]];
 }
 
-function leastSquaresFit(chord,ts) { //IT FUCKIN WORKS FUCK YEAAAAAH
-    if(chord.length < 4) {
+function leastSquaresFit(chord, ts) { //IT FUCKIN WORKS FUCK YEAAAAAH
+    if (chord.length < 4) {
         var c1 = chord[0],
-            c4 = chord[chord.length-1],
-            c2 = midpoint(c1,c4,0.25),
-            c3 = midpoint(c1,c4,0.75);
-        return new Bezier([c1,c2,c3,c4]);
+            c4 = chord[chord.length - 1],
+            c2 = midpoint(c1, c4, 0.25),
+            c3 = midpoint(c1, c4, 0.75);
+        return new Bezier([c1, c2, c3, c4]);
     }
-    var cs = coefficientHelper(chord,ts),
+    var cs = coefficientHelper(chord, ts),
         xs = gaussianElimination(cs[0]),
         ys = gaussianElimination(cs[1]);
-    
-    return new Bezier([chord[0], [xs[0],ys[0]], [xs[1],ys[1]], chord[chord.length-1]]);
+
+    return new Bezier([chord[0], [xs[0], ys[0]], [xs[1], ys[1]], chord[chord.length - 1]]);
 }
 
-function getMaxErrorPoint(chord,ts,curve) {
+function getMaxErrorPoint(chord, ts, curve) {
     var max = 0,
         iMax = 0;
-    for(var i = 0; i<ts.length; i++) {
-        var dist = getDist(curve.getPoint(ts[i]),chord[i]);
-        if(dist > max) {
+    for (var i = 0; i < ts.length; i++) {
+        var dist = getDist(curve.getPoint(ts[i]), chord[i]);
+        if (dist > max) {
             max = dist;
             iMax = i;
         }
     }
-    return [iMax,max];
+    return [iMax, max];
 }
 
 function fitStroke(chord) {
-    var chords = splitChord(chord,detectCorners(chord)),
+    var chords = splitChord(chord, detectCorners(chord)),
         curves = [];
-        
-    for(var i in chords) {
+
+    for (var i in chords) {
         var ts = parameterize(chords[i]),
-            curve = leastSquaresFit(chords[i],ts);
+            curve = leastSquaresFit(chords[i], ts);
         curves.push(curve);
     }
-    
+
     return curves;
 }
 
-function splitCurve(chord,ts,curve) { //TODO FIGURE THIS FUCKING SHIT OUT
+function splitCurve(chord, ts, curve) { //TODO FIGURE THIS FUCKING SHIT OUT
     var errs = [];
-    for(var i = 1; i<chord.length; i++) {
-        var chord1 = chord.slice(0,i+1),
+    for (var i = 1; i < chord.length; i++) {
+        var chord1 = chord.slice(0, i + 1),
             chord2 = chord.slice(i),
-            ts1    = parameterize(chord1),
-            ts2    = parameterize(chord2),
-            curve1 = leastSquaresFit(chord1,ts1),
-            curve2 = leastSquaresFit(chord2,ts2);
-        errs.push(sumSquaredError(chord1,ts1,curve1) +
-                  sumSquaredError(chord2,ts2,curve2));
+            ts1 = parameterize(chord1),
+            ts2 = parameterize(chord2),
+            curve1 = leastSquaresFit(chord1, ts1),
+            curve2 = leastSquaresFit(chord2, ts2);
+        errs.push(sumSquaredError(chord1, ts1, curve1) +
+            sumSquaredError(chord2, ts2, curve2));
     }
     //console.log(errs);
     return findListMin(errs);
 }
 
-function splitCurveAt(chord,i) {
-    var chord1 = chord.slice(0,i+1),
+function splitCurveAt(chord, i) {
+    var chord1 = chord.slice(0, i + 1),
         chord2 = chord.slice(i),
-        ts1    = parameterize(chord1),
-        ts2    = parameterize(chord2),
-        curve1 = leastSquaresFit(chord1,ts1),
-        curve2 = leastSquaresFit(chord2,ts2);
-    return [curve1,curve2];
+        ts1 = parameterize(chord1),
+        ts2 = parameterize(chord2),
+        curve1 = leastSquaresFit(chord1, ts1),
+        curve2 = leastSquaresFit(chord2, ts2);
+    return [curve1, curve2];
 }
 
-function sumSquaredError(chord,ts,curve) {
+function sumSquaredError(chord, ts, curve) {
     var sum = 0;
-    for(var i in chord) {
-        sum += Math.pow(getDist(chord[i],curve.getPoint(ts[i])),2);
+    for (var i in chord) {
+        sum += Math.pow(getDist(chord[i], curve.getPoint(ts[i])), 2);
     }
     return sum;
 }
@@ -1928,35 +1954,35 @@ function detectCorners(chord) {
     var segmentLength = 30,
         angleThreshold = 135,
         indices = [];
-    for(var i = 1; i<chord.length-1; i++) {
-        var angle = getSmallerAngle(getAngleBetween(sub(chord[i-1],chord[i]), sub(chord[i+1],chord[i])))*180/Math.PI;
+    for (var i = 1; i < chord.length - 1; i++) {
+        var angle = getSmallerAngle(getAngleBetween(sub(chord[i - 1], chord[i]), sub(chord[i + 1], chord[i]))) * 180 / Math.PI;
 
-        if(angle<=angleThreshold) {
+        if (angle <= angleThreshold) {
             indices.push(i);
         }
     }
-    
+
     return indices;
 }
 
 //returns the shortest segment of the chord that is at least the given length
-function getChordSegmentByLength(chord,length) {
+function getChordSegmentByLength(chord, length) {
     var dist = 0;
     var i = 0;
-    while(dist<length) {
+    while (dist < length) {
         i++;
-        if(i >= chord.length) //if it's not long enough just return the whole thing
-            return chord; 
-        dist+=getDist(chord[i],chord[i-1]); 
+        if (i >= chord.length) //if it's not long enough just return the whole thing
+            return chord;
+        dist += getDist(chord[i], chord[i - 1]);
     }
-    return chord.slice(0,i);
+    return chord.slice(0, i);
 }
 
-function splitChord(chord,indices) {
+function splitChord(chord, indices) {
     var newChords = [],
         ind = 0;
-    for(var i in indices) {
-        newChords.push(chord.slice(ind,indices[i]+1));
+    for (var i in indices) {
+        newChords.push(chord.slice(ind, indices[i] + 1));
         ind = indices[i];
     }
     newChords.push(chord.slice(ind));
@@ -1965,8 +1991,8 @@ function splitChord(chord,indices) {
 
 function chordPrint(chord) {
     var s = "| ";
-    for(var i in chord) {
-        s+= chord[i] + " | ";
+    for (var i in chord) {
+        s += chord[i] + " | ";
     }
     //console.log(s);
 }
@@ -1977,28 +2003,28 @@ function chordPrint(chord) {
 //Basically, a "stroke" will be a collection of segments
 //the segments when drawn will be assigned corners and types and stuff
 
-function drawSegment(wF,segment,width,ctx) {
-    drawBezier(segment,width,wF,ctx);
+function drawSegment(wF, segment, width, ctx) {
+    drawBezier(segment, width, wF, ctx);
     //ctx.fillStyle = "rgba(0,0,0,1)";
 }
 
 
 
-function drawBasicStroke(segment,width,ctx) { //TODO
+function drawBasicStroke(segment, width, ctx) { //TODO
     var attrs = getSegmentAttributes(segment),
-        comps = checkRules2(attrs,RULE_BS);
-    
+        comps = checkRules2(attrs, RULE_BS);
+
     //corners
-    if(comps.length == 1){ //dian
-        var point = midpoint(attrs.startPoint,attrs.endPoint,0.5);  //FIXME these stupid width division factors
-        drawCornerScaled(comps[0],point,degToRad(attrs.startAngle),width/13,attrs.length/20,ctx);
+    if (comps.length == 1) { //dian
+        var point = midpoint(attrs.startPoint, attrs.endPoint, 0.5);  //FIXME these stupid width division factors
+        drawCornerScaled(comps[0], point, degToRad(attrs.startAngle), width / 13, attrs.length / 20, ctx);
     } else {
-        drawCorner(comps[0],attrs.startPoint,degToRad(attrs.startAngle),width/10,ctx);
-        if(comps.length == 3) {
-            drawCorner(comps[2],attrs.endPoint,degToRad(attrs.endAngle),width/10,ctx);
+        drawCorner(comps[0], attrs.startPoint, degToRad(attrs.startAngle), width / 10, ctx);
+        if (comps.length == 3) {
+            drawCorner(comps[2], attrs.endPoint, degToRad(attrs.endAngle), width / 10, ctx);
         }
-        
-        drawSegment(comps[1],segment,width,ctx);
+
+        drawSegment(comps[1], segment, width, ctx);
     }
 }
 
@@ -2006,74 +2032,74 @@ function Stroke(segments) {
     this.segments = segments;
 }
 
-Stroke.prototype.drawPlain = function(ctx) {
+Stroke.prototype.drawPlain = function (ctx) {
     var x = this.segments[0].getStart()[0],
         y = this.segments[0].getStart()[1];
-    ctx.moveTo(x,y);
-    for(var i = 0; i < this.segments.length; i++) {
+    ctx.moveTo(x, y);
+    for (var i = 0; i < this.segments.length; i++) {
         var b = this.segments[i].controlPoints;
-        ctx.bezierCurveTo(b[1][0],b[1][1],b[2][0],b[2][1],b[3][0],b[3][1]);
+        ctx.bezierCurveTo(b[1][0], b[1][1], b[2][0], b[2][1], b[3][0], b[3][1]);
     }
-    ctx.stroke();      
+    ctx.stroke();
 };
 
-Stroke.prototype.draw = function(width, ctx) {
-    if(this.segments.length == 1){ //Basic Stroke
-        drawBasicStroke(this.segments[0],width,ctx);
+Stroke.prototype.draw = function (width, ctx) {
+    if (this.segments.length == 1) { //Basic Stroke
+        drawBasicStroke(this.segments[0], width, ctx);
     } else { //Compound stroke
-        drawCompoundStroke(this,width,ctx);
+        drawCompoundStroke(this, width, ctx);
     }
 };
 
-function drawCompoundStroke(stroke,width,ctx) { //FIXME copypasta
+function drawCompoundStroke(stroke, width, ctx) { //FIXME copypasta
     var numSegments = stroke.segments.length;
 
     //corners
     var attrs = getSegmentAttributes(stroke.segments[0]),
         corners = [];
-    
-    var corner = checkRules2(attrs,RULE_CC_START);//checkRules(attrs,COMPOUND_CORNER_START);
-    if(corner != null)
-        drawCorner(corner,attrs.startPoint,attrs.startAngle/180*Math.PI,width/10,ctx);
+
+    var corner = checkRules2(attrs, RULE_CC_START);//checkRules(attrs,COMPOUND_CORNER_START);
+    if (corner != null)
+        drawCorner(corner, attrs.startPoint, attrs.startAngle / 180 * Math.PI, width / 10, ctx);
     corners.push(corner);
-    
-    for(var i = 1; i<numSegments; i++) {
-        attrs = getCornerAttributes(stroke.segments[i-1],stroke.segments[i]);
-        corner = checkRules2(attrs,RULE_CC_MID);//checkRules(attrs,COMPOUND_CORNER_MID);
-        if(corner != null)
-            drawDICorner(corner,attrs,width/10,ctx);
+
+    for (var i = 1; i < numSegments; i++) {
+        attrs = getCornerAttributes(stroke.segments[i - 1], stroke.segments[i]);
+        corner = checkRules2(attrs, RULE_CC_MID);//checkRules(attrs,COMPOUND_CORNER_MID);
+        if (corner != null)
+            drawDICorner(corner, attrs, width / 10, ctx);
         corners.push(corner);
     }
-    attrs = getSegmentAttributes(stroke.segments[numSegments-1]);
-    corner = checkRules2(attrs,RULE_CC_END);//checkRules(attrs,COMPOUND_CORNER_END);
-    if(corner != null)
-        drawCorner(corner,attrs.endPoint,attrs.endAngle/180*Math.PI,width/10,ctx);
+    attrs = getSegmentAttributes(stroke.segments[numSegments - 1]);
+    corner = checkRules2(attrs, RULE_CC_END);//checkRules(attrs,COMPOUND_CORNER_END);
+    if (corner != null)
+        drawCorner(corner, attrs.endPoint, attrs.endAngle / 180 * Math.PI, width / 10, ctx);
     corners.push(corner);
-    
+
     //SEGMENTS FIXME gross code
-    
-    if(corners[0] == null)
-        drawSegment(SEGMENT_III,stroke.segments[0],width,ctx);
+
+    if (corners[0] == null)
+        drawSegment(SEGMENT_III, stroke.segments[0], width, ctx);
     else
-        drawSegment(SEGMENT_I,stroke.segments[0],width,ctx);
-    for(var i = 1; i<numSegments-1; i++) {
-        drawSegment(SEGMENT_I,stroke.segments[i],width,ctx); //FIXME only segment I. this is not done!
+        drawSegment(SEGMENT_I, stroke.segments[0], width, ctx);
+    for (var i = 1; i < numSegments - 1; i++) {
+        drawSegment(SEGMENT_I, stroke.segments[i], width, ctx); //FIXME only segment I. this is not done!
     }
-    if(corners[numSegments] == null)
-        drawSegment(SEGMENT_II,stroke.segments[numSegments-1],width,ctx);
+    if (corners[numSegments] == null)
+        drawSegment(SEGMENT_II, stroke.segments[numSegments - 1], width, ctx);
     else
-        drawSegment(SEGMENT_I,stroke.segments[numSegments-1],width,ctx);
+        drawSegment(SEGMENT_I, stroke.segments[numSegments - 1], width, ctx);
     //ctx.fillStyle = "rgba(0,0,0,1)";
-    
+
 }
 
-function inRange(num,range) {
+function inRange(num, range) {
     return num >= range[0] && num < range[1];
 }
 
-function inRanges(num,ranges) {
-    for(var i = 0; i<ranges.length; i++) {
-        if(inRange(num,ranges[i]))
+function inRanges(num, ranges) {
+    for (var i = 0; i < ranges.length; i++) {
+        if (inRange(num, ranges[i]))
             return true;
     }
     return false;
@@ -2081,99 +2107,99 @@ function inRanges(num,ranges) {
 
 function getSegmentAttributes(seg) {
     var attrs = {
-        "startAngle" : getSegAngleStart(seg) *180/Math.PI,
-        "endAngle" : getSegAngleEnd(seg) * 180/Math.PI,
-        "startPoint" : seg.getStart(),
-        "endPoint" : seg.getEnd(),
-        "length" : seg.getLength()
+        "startAngle": getSegAngleStart(seg) * 180 / Math.PI,
+        "endAngle": getSegAngleEnd(seg) * 180 / Math.PI,
+        "startPoint": seg.getStart(),
+        "endPoint": seg.getEnd(),
+        "length": seg.getLength()
     };
     return attrs;
 }
 
 function getCornerAttributes(inSeg, outSeg) {
     var attrs = {
-        "inAngle" : getSegAngleEnd(inSeg) * 180/Math.PI,
-        "outAngle" : getSegAngleStart(outSeg) * 180/Math.PI,
-        "point" : inSeg.getEnd()
+        "inAngle": getSegAngleEnd(inSeg) * 180 / Math.PI,
+        "outAngle": getSegAngleStart(outSeg) * 180 / Math.PI,
+        "point": inSeg.getEnd()
     };
-    attrs.betweenAngle = getInnerAngle(attrs.inAngle,attrs.outAngle);
+    attrs.betweenAngle = getInnerAngle(attrs.inAngle, attrs.outAngle);
     //console.log(attrs.inAngle,attrs.outAngle);
     //console.log(attrs.betweenAngle);
     return attrs;
 }
 
 function getInnerAngle(inAngle, outAngle) { //If outAngle is past inAngle, then it's negative
-    inAngle = reduceAngleDeg(inAngle+180);
+    inAngle = reduceAngleDeg(inAngle + 180);
     var ang = Math.abs(getSmallerAngleDeg(inAngle - outAngle));
-    if(inAngle>outAngle){
-        if(inAngle-180<outAngle)
+    if (inAngle > outAngle) {
+        if (inAngle - 180 < outAngle)
             return ang;
         return -ang;
     } else {
-        if(outAngle-180<inAngle)
+        if (outAngle - 180 < inAngle)
             return -ang;
         return ang;
     }
-        
+
 }
 
 function innerAngleHelper(angle) { //if it's negative then it is the other angle
-    if(angle>180)
-        return angle-360;
+    if (angle > 180)
+        return angle - 360;
     return angle;
 }
 
-function checkRule(obj,rule) {
-    if(rule[0] == "Result")
+function checkRule(obj, rule) {
+    if (rule[0] == "Result")
         return rule[1];
     //console.log(rule[0]);
-    if(inRange(obj[rule[0]],rule[1]))
-        return checkRule(obj,rule[2]);
+    if (inRange(obj[rule[0]], rule[1]))
+        return checkRule(obj, rule[2]);
     return null;
 }
 
-function checkRules(obj,ruleset) { //checks all rules, no shortcircuiting currently
+function checkRules(obj, ruleset) { //checks all rules, no shortcircuiting currently
     var results = [];
     //console.log("Checking rules");
-    for(var i = 0; i<ruleset.length-1; i++) {
-        var result = checkRule(obj,ruleset[i]);
-        if(result != null)
+    for (var i = 0; i < ruleset.length - 1; i++) {
+        var result = checkRule(obj, ruleset[i]);
+        if (result != null)
             results.push(result);
     }
-    if(results.length > 1)
+    if (results.length > 1)
         throw "Overlapping conditions";
-    if(results.length == 1)
+    if (results.length == 1)
         return results[0];
     //console.log("no result");
-    return ruleset[ruleset.length-1]; //default
+    return ruleset[ruleset.length - 1]; //default
 }
 
-function checkRules2(obj,ruleset) {
+function checkRules2(obj, ruleset) {
     var results = [];
     //console.log("Checking rules");
-    for(var i = 0; i<ruleset.length; i++) {
-        if(ruleset[i].check(obj))
+    for (var i = 0; i < ruleset.length; i++) {
+        if (ruleset[i].check(obj))
             return ruleset[i].result;
     }
     //console.log("No Result");
     return null
 }
 
-function Rule(result,condition) {
+function Rule(result, condition) {
     this.condition = condition;
     this.result = result;
 }
 
-Rule.prototype.check = function(attrs) {
-    return checkCond(attrs,this.condition);
+Rule.prototype.check = function (attrs) {
+    return checkCond(attrs, this.condition);
 }
 
-function checkCond(attrs,cond) {
+function checkCond(attrs, cond) {
     var op = OPERATIONS[cond[1]],
         val = attrs[cond[0]];
     //console.log("Op:",cond[1]);
     //console.log(cond[0],val);
-    return op(attrs,val,cond.slice(2));
+    return op(attrs, val, cond.slice(2));
 }
 
 
@@ -2181,107 +2207,107 @@ TH1 = 60;
 TH2 = 40;
 
 OPERATIONS = {
-    "TRUE" : function(a,n,r) {
+    "TRUE": function (a, n, r) {
         return true;
     },
-    "IN_RANGE" : function(a,n,r) {
-        for(var i in r)
-            if(n>=r[i][0] && n<r[i][1])
+    "IN_RANGE": function (a, n, r) {
+        for (var i in r)
+            if (n >= r[i][0] && n < r[i][1])
                 return true;
-            return false;
+        return false;
     },
-    "GREATER_THAN" : function(a,n,r) {
-        return n>=r;
+    "GREATER_THAN": function (a, n, r) {
+        return n >= r;
     },
-    "LESS_THAN" : function(a,n,r) {
-        return n<r;
+    "LESS_THAN": function (a, n, r) {
+        return n < r;
     },
-    "OR" : function(a,n,c) {
-        for(var i in c)
-            if(checkCond(a,c[i]))
-                return true; 
-            return false;
+    "OR": function (a, n, c) {
+        for (var i in c)
+            if (checkCond(a, c[i]))
+                return true;
+        return false;
     },
-    "AND" : function(a,n,c) {
-        for(var i in c) 
-            if(!checkCond(a,c[i]))
-                return false; 
-            return true;
+    "AND": function (a, n, c) {
+        for (var i in c)
+            if (!checkCond(a, c[i]))
+                return false;
+        return true;
     }
 };
 
 RULE_CC_START = [
-    new Rule(C2, ["startAngle", "IN_RANGE", [0,10], [350,360]]),
-    new Rule(C4, ["startAngle", "IN_RANGE", [80,350]])
+    new Rule(C2, ["startAngle", "IN_RANGE", [0, 10], [350, 360]]),
+    new Rule(C4, ["startAngle", "IN_RANGE", [80, 350]])
 ];
 
 RULE_CC_END = [
-    new Rule(C3, ["endAngle", "IN_RANGE", [0,10], [350,360]]),
-    new Rule(C7, ["endAngle", "IN_RANGE", [10,80]]),
-    new Rule(C5, ["engAngle", "IN_RANGE", [80,100]])
+    new Rule(C3, ["endAngle", "IN_RANGE", [0, 10], [350, 360]]),
+    new Rule(C7, ["endAngle", "IN_RANGE", [10, 80]]),
+    new Rule(C5, ["engAngle", "IN_RANGE", [80, 100]])
 ];
 
 RULE_CC_MID = [
-    new Rule(C8, ["", "AND", ["inAngle", "IN_RANGE",[0,45],[315,360]],
-                             ["betweenAngle", "IN_RANGE",[0,180]]]),
-    new Rule(C8R,["", "AND", ["inAngle", "IN_RANGE", [60,170]], //a little ugly :| but accurate?
-                            ["betweenAngle", "IN_RANGE",[-180,0]]]), 
-    new Rule(C9, ["", "AND", ["inAngle", "IN_RANGE", [45,145]],
-                             ["betweenAngle", "IN_RANGE", [0,180]]]),
-    new Rule(C9R,["", "AND", ["inAngle", "IN_RANGE", [0,60], [240,360]],
-                            ["betweenAngle","IN_RANGE",[-180,0]]])
+    new Rule(C8, ["", "AND", ["inAngle", "IN_RANGE", [0, 45], [315, 360]],
+        ["betweenAngle", "IN_RANGE", [0, 180]]]),
+    new Rule(C8R, ["", "AND", ["inAngle", "IN_RANGE", [60, 170]], //a little ugly :| but accurate?
+        ["betweenAngle", "IN_RANGE", [-180, 0]]]),
+    new Rule(C9, ["", "AND", ["inAngle", "IN_RANGE", [45, 145]],
+        ["betweenAngle", "IN_RANGE", [0, 180]]]),
+    new Rule(C9R, ["", "AND", ["inAngle", "IN_RANGE", [0, 60], [240, 360]],
+        ["betweenAngle", "IN_RANGE", [-180, 0]]])
 ];
 
 RULE_BS = [ //TODO, fix the "default" case
-    new Rule(DIAN,["length","LESS_THAN",TH2]),
-    new Rule(HEN,["startAngle","IN_RANGE",[0,10],[350,360]]),
-    new Rule(SHU1,["", "AND", ["startAngle","IN_RANGE",[80,100]],
-                              ["length","GREATER_THAN",TH1]]),
-    new Rule(SHU2,["", "AND", ["startAngle","IN_RANGE",[80,100]],
-                              ["length","IN_RANGE",[TH2,TH1]]]), //to prevent overlap
-    new Rule(NA,["startAngle","IN_RANGE",[10,80]]),
-    new Rule(OTHER,["","TRUE"])
+    new Rule(DIAN, ["length", "LESS_THAN", TH2]),
+    new Rule(HEN, ["startAngle", "IN_RANGE", [0, 10], [350, 360]]),
+    new Rule(SHU1, ["", "AND", ["startAngle", "IN_RANGE", [80, 100]],
+        ["length", "GREATER_THAN", TH1]]),
+    new Rule(SHU2, ["", "AND", ["startAngle", "IN_RANGE", [80, 100]],
+        ["length", "IN_RANGE", [TH2, TH1]]]), //to prevent overlap
+    new Rule(NA, ["startAngle", "IN_RANGE", [10, 80]]),
+    new Rule(OTHER, ["", "TRUE"])
 ];
 
 // Rules
 BASIC_STROKE = [
-    ["startAngle", [0,10]]
+    ["startAngle", [0, 10]]
 ];
 
 COMPOUND_CORNER_START = [
-    ["startAngle",   [0,10],    ["Result",C2]],
-    ["startAngle",   [80,350],  ["Result",C4]],
-    ["startAngle",   [350,360], ["Result",C2]],
+    ["startAngle", [0, 10], ["Result", C2]],
+    ["startAngle", [80, 350], ["Result", C4]],
+    ["startAngle", [350, 360], ["Result", C2]],
     null
-    ];
+];
 
 COMPOUND_CORNER_MID = [
-    ["inAngle",     [0,45], ["betweenAngle", [0,180], ["Result", C8]]],
-    ["inAngle",     [315,360], ["betweenAngle", [0,180], ["Result", C8]]],
-    ["inAngle",     [45,135], ["betweenAngle", [-180,-90], ["Result", C8R]]],
-    ["inAngle",     [45,135], ["betweenAngle", [0,180], ["Result", C9]]],
-    ["inAngle",     [45,180], ["betweenAngle", [-90,0], ["Result", C9R]]],
-    ["inAngle",     [0,45], ["betweenAngle", [-180,0], ["Result", C9R]]],
-    ["inAngle",     [315,360], ["betweenAngle", [-180,0], ["Result", C9R]]],
+    ["inAngle", [0, 45], ["betweenAngle", [0, 180], ["Result", C8]]],
+    ["inAngle", [315, 360], ["betweenAngle", [0, 180], ["Result", C8]]],
+    ["inAngle", [45, 135], ["betweenAngle", [-180, -90], ["Result", C8R]]],
+    ["inAngle", [45, 135], ["betweenAngle", [0, 180], ["Result", C9]]],
+    ["inAngle", [45, 180], ["betweenAngle", [-90, 0], ["Result", C9R]]],
+    ["inAngle", [0, 45], ["betweenAngle", [-180, 0], ["Result", C9R]]],
+    ["inAngle", [315, 360], ["betweenAngle", [-180, 0], ["Result", C9R]]],
     null
 ];
 
 COMPOUND_CORNER_END = [
-    ["endAngle",   [0,10],    ["Result",C3]],
-    ["endAngle",   [10,80],   ["Result",C7]],
-    ["endAngle",   [80,100],  ["Result",C5]],
+    ["endAngle", [0, 10], ["Result", C3]],
+    ["endAngle", [10, 80], ["Result", C7]],
+    ["endAngle", [80, 100], ["Result", C5]],
     null
-    ];
-   
+];
+
 /* ------------------------------        examples.js        ------------------------------*/
 
 // (ugly) Character examples for testing
 
 //compound stroke
 CSTROKE_1 = new Stroke([
-    new Bezier([[50,110],[60,110],[190,100],[200,90]]),
-    new Bezier([[200,90],[205,90],[200,150],[195,150]]),
-    new Bezier([[195,150],[170,160],[120,150],[100,150]])
+    new Bezier([[50, 110], [60, 110], [190, 100], [200, 90]]),
+    new Bezier([[200, 90], [205, 90], [200, 150], [195, 150]]),
+    new Bezier([[195, 150], [170, 160], [120, 150], [100, 150]])
 ])
 
 /* ------------------------------        Character.js        ------------------------------*/
@@ -2291,18 +2317,18 @@ var ANG_DIST = 0.3;
 function getSegAngleStart(curve) {
     var start = curve.getStart(),
         point = curve.getPoint(curve.getPointByLength(20)),//curve.getPoint(ANG_DIST),
-        dir   = getAngle(sub(point,start));
-    if(dir<0)                   //No like
-        dir += 2*Math.PI;
+        dir = getAngle(sub(point, start));
+    if (dir < 0)                   //No like
+        dir += 2 * Math.PI;
     return dir;
 }
 
 function getSegAngleEnd(curve) {
     var end = curve.getEnd(),
         point = curve.getPoint(curve.getPointByLengthBack(20)),//curve.getPoint(1-ANG_DIST),
-        dir   = getAngle(sub(end,point)); //different from counterpart, maybe bad?
-    if(dir<0)
-        dir += 2*Math.PI;
+        dir = getAngle(sub(end, point)); //different from counterpart, maybe bad?
+    if (dir < 0)
+        dir += 2 * Math.PI;
     return dir;
 }
 
@@ -2312,7 +2338,7 @@ function getSegAngleEnd(curve) {
  * A bunch of stuff
  */
 
- function vectorSum(v1, c, v2) {
+function vectorSum(v1, c, v2) {
     var result = [];
     for (var i = 0; i < v1.length; i++)
         result[i] = v1[i] + c * v2[i];
@@ -2342,45 +2368,45 @@ function zeroes(r, c) {
 function transpose(m) {
     var result = zeroes(m[0].length, m.length);
     for (var r = 0; r < result.length; r++) {
-        for(var c = 0; c < result[0].length; c++) {
+        for (var c = 0; c < result[0].length; c++) {
             result[r][c] = m[c][r];
         }
     }
     return result;
 }
 
-function matrixMult(m1,m2) {
-    if(m1[0].length != m2.length)
+function matrixMult(m1, m2) {
+    if (m1[0].length != m2.length)
         throw "Matrix dimension mismatch. Cannot multiply";
-    
-    var result = zeroes(m1.length,m2[0].length);
-    
-    for(var r = 0; r<result.length; r++) {
-        for(var c = 0; c<result[0].length; c++) {
-            result[r][c]=mMultHelper(m1,m2,r,c);
+
+    var result = zeroes(m1.length, m2[0].length);
+
+    for (var r = 0; r < result.length; r++) {
+        for (var c = 0; c < result[0].length; c++) {
+            result[r][c] = mMultHelper(m1, m2, r, c);
         }
     }
     return result;
 }
 
-function mMultHelper(m1,m2,r,c) { //does dot producting BS
+function mMultHelper(m1, m2, r, c) { //does dot producting BS
     var result = 0;
-    for(var i = 0; i<m1.length; i++)
-        result += m1[r][i]*m2[i][c];
+    for (var i = 0; i < m1.length; i++)
+        result += m1[r][i] * m2[i][c];
     return result;
 }
 
 //probably will never be used
-function rowProduct(m,r) {
+function rowProduct(m, r) {
     var result = 1;
-    for(var i = 0; i<m[0].length; i++)
+    for (var i = 0; i < m[0].length; i++)
         result *= m[r][i];
     return result;
 }
 
-function colProduct(m,c) {
+function colProduct(m, c) {
     var result = 1;
-    for(var i = 0; i<m.length; i++)
+    for (var i = 0; i < m.length; i++)
         result *= m[i][c];
     return result;
 }
@@ -2391,35 +2417,35 @@ function colProduct(m,c) {
  */
 function gaussianElimination1(matrix) {
     matrix = matrix.slice(0); //shallow copy (it's cool cause it's ints)
-    
-    for(var i = 0; i<matrix.length; i++) {//each row get the first coeffecient
+
+    for (var i = 0; i < matrix.length; i++) {//each row get the first coeffecient
         var temp = gElHelper1(matrix[i]),
             p = temp[0],
             a = temp[1];
-            
-        for(var j = 0; j<matrix.length; j++) { //remove from other rows
+
+        for (var j = 0; j < matrix.length; j++) { //remove from other rows
             var b = matrix[j][p];
-            
-            if(b != 0 && i != j)
-                matrix[j] = vectorSum(matrix[j],-b/a,matrix[i]);
+
+            if (b != 0 && i != j)
+                matrix[j] = vectorSum(matrix[j], -b / a, matrix[i]);
         }
     }
 
     //This part assumes that you end up with something in almost row echelon form (coeffecients may not be 1)    
     var result = [],
-        numVars = matrix[0].length-1;
-    for(var i = 0; i<numVars; i++) { //grabbing the results
-        result[i] = matrix[i][numVars]/matrix[i][i];
+        numVars = matrix[0].length - 1;
+    for (var i = 0; i < numVars; i++) { //grabbing the results
+        result[i] = matrix[i][numVars] / matrix[i][i];
     }
     return result;
-    
-    
+
+
 }
 //Helper function returns the first position of a nonzero coeffecient and the coefficient itself
 function gElHelper1(vector) {
-    for(var i = 0; i<vector.length; i++)
-        if(vector[i] != 0)
-            return [i,vector[i]];
+    for (var i = 0; i < vector.length; i++)
+        if (vector[i] != 0)
+            return [i, vector[i]];
     return -1
 }
 
@@ -2428,49 +2454,49 @@ function gaussianElimination(matrix) {
     var numRows = matrix.length,
         numCols = matrix[0].length,
         sol = [];
-        
+
     //matrixPrint(matrix);
-    
-    for(var c = 0; c<numRows; c++) {
-        var iMax = gElHelper(matrix,c);
-        
-        if(matrix[iMax][c] == 0)
+
+    for (var c = 0; c < numRows; c++) {
+        var iMax = gElHelper(matrix, c);
+
+        if (matrix[iMax][c] == 0)
             throw "Matrix is singular"
-        swapRows(matrix,c,iMax);
-        
-        for(var d = c+1; d<numRows; d++) {
-            var mult = matrix[d][c]/matrix[c][c];
-            
-            matrix[d] = vectorSum(matrix[d],-mult,matrix[c]);
+        swapRows(matrix, c, iMax);
+
+        for (var d = c + 1; d < numRows; d++) {
+            var mult = matrix[d][c] / matrix[c][c];
+
+            matrix[d] = vectorSum(matrix[d], -mult, matrix[c]);
         }
     }
-    
-    for(var r = 0; r<numRows; r++) {
-        var i = numRows-r-1;
-        
-        for(var s = r+1; s<numRows; s++) {
-            var mult = -matrix[s][i]/matrix[r][i]
-            matrix[s] = vectorSum(matrix[s],mult,matrix[r]);
+
+    for (var r = 0; r < numRows; r++) {
+        var i = numRows - r - 1;
+
+        for (var s = r + 1; s < numRows; s++) {
+            var mult = -matrix[s][i] / matrix[r][i]
+            matrix[s] = vectorSum(matrix[s], mult, matrix[r]);
         }
-        sol.push(matrix[r][numCols-1]/matrix[r][i]);
+        sol.push(matrix[r][numCols - 1] / matrix[r][i]);
     }
-    
+
     return sol.reverse();
 }
 //Helper function finds the pos of the max in the column
-function gElHelper(matrix,c) {
+function gElHelper(matrix, c) {
     var iMax = 0;
-    for(var i = c; i<matrix.length; i++) {
-        if(Math.abs(matrix[i][c])>Math.abs(matrix[iMax][c]))
+    for (var i = c; i < matrix.length; i++) {
+        if (Math.abs(matrix[i][c]) > Math.abs(matrix[iMax][c]))
             iMax = i;
     }
     return iMax
 }
 
-function swapRows(matrix,r0,r1) {
+function swapRows(matrix, r0, r1) {
     var i = matrix[r0];
-    matrix[r0]=matrix[r1];
-    matrix[r1]=i;
+    matrix[r0] = matrix[r1];
+    matrix[r1] = i;
     return matrix;
 }
 
@@ -2479,13 +2505,13 @@ function swapRows(matrix,r0,r1) {
 // Math
 function truncate(vector, max) {
     var mag = getMag(vector);
-    if(mag > max)
-        return scale(vector,max/mag);
+    if (mag > max)
+        return scale(vector, max / mag);
     return vector;
 }
 
 function perp(vector) {
-    return [vector[1],-vector[0]];
+    return [vector[1], -vector[0]];
 }
 
 function perpNorm(vector) {
@@ -2496,118 +2522,118 @@ function normalize(vector) {
     //if(vector[0]==0 && vector[1]==0)
     //    return [0,1];
     var mag = getMag(vector);
-    return scale(vector,1/mag);
+    return scale(vector, 1 / mag);
 }
 
-function normalizeTo(vector,mag) {
-    return scale(normalize(vector),mag);
+function normalizeTo(vector, mag) {
+    return scale(normalize(vector), mag);
 }
 
-function projectedLength(vector,along) {
-    return dot(vector,along)/getMag(along);
+function projectedLength(vector, along) {
+    return dot(vector, along) / getMag(along);
 }
 
-function project(vector,along) {
-    
+function project(vector, along) {
+
 }
 
-function scale(vector,factor) {
-    return [vector[0]*factor,vector[1]*factor];
+function scale(vector, factor) {
+    return [vector[0] * factor, vector[1] * factor];
 }
 
 function add(vector1, vector2) {
-    return [vector1[0]+vector2[0],vector1[1]+vector2[1]];
+    return [vector1[0] + vector2[0], vector1[1] + vector2[1]];
 }
 
 function sub(vector1, vector2) {
-    return [vector1[0]-vector2[0],vector1[1]-vector2[1]];
+    return [vector1[0] - vector2[0], vector1[1] - vector2[1]];
 }
 
 function getMag(vector) {
-    return getDist([0,0],vector);
+    return getDist([0, 0], vector);
 }
-    
-function getDist(vector1,vector2) {
-    return Math.sqrt(Math.pow((vector2[0]-vector1[0]),2)+Math.pow((vector2[1]-vector1[1]),2));
+
+function getDist(vector1, vector2) {
+    return Math.sqrt(Math.pow((vector2[0] - vector1[0]), 2) + Math.pow((vector2[1] - vector1[1]), 2));
 }
 
 function getAngle(vector) {
     var quad = 0;
-    if(vector[0]===0) // because 0 and -0 are not always the same
+    if (vector[0] === 0) // because 0 and -0 are not always the same
         vector[0] = +0;
-    if(vector[0]<0)
+    if (vector[0] < 0)
         quad = Math.PI;
-    else if(vector[0]>0 && vector[1]<0)
-        quad = 2*Math.PI;
-    return reduceAngle(Math.atan(vector[1]/vector[0])+quad);
+    else if (vector[0] > 0 && vector[1] < 0)
+        quad = 2 * Math.PI;
+    return reduceAngle(Math.atan(vector[1] / vector[0]) + quad);
 }
 
-function getAngleBetween(vector1,vector2) {
-    return Math.abs(getAngle(vector1)-getAngle(vector2));
+function getAngleBetween(vector1, vector2) {
+    return Math.abs(getAngle(vector1) - getAngle(vector2));
 }
 
 function getSmallerAngle(angle) {
-    if(angle > Math.PI)
-        return 2*Math.PI-angle;
-    if(angle < -Math.PI)
-        return -2*Math.PI-angle
+    if (angle > Math.PI)
+        return 2 * Math.PI - angle;
+    if (angle < -Math.PI)
+        return -2 * Math.PI - angle
     return angle;
 }
 
 function getSmallerAngleDeg(angle) {
-    if(angle > 180)
-        return 360-angle;
-    if(angle < -180)
-        return -360-angle;
+    if (angle > 180)
+        return 360 - angle;
+    if (angle < -180)
+        return -360 - angle;
     return angle;
 }
 
 function radToDeg(angle) {
-    return angle*180/Math.PI;
+    return angle * 180 / Math.PI;
 }
 
 function degToRad(angle) {
-    return angle*Math.PI/180;
+    return angle * Math.PI / 180;
 }
 
 function reduceAngle(angle) {
-    return angle-Math.floor(angle/(2*Math.PI))*2*Math.PI;
+    return angle - Math.floor(angle / (2 * Math.PI)) * 2 * Math.PI;
 }
 
 function reduceAngleDeg(angle) {
-    return angle-Math.floor(angle/360)*360;
+    return angle - Math.floor(angle / 360) * 360;
 }
 
-function dot(vector1,vector2) {
-    return vector1[0]*vector2[0]+vector1[1]*vector2[1];
+function dot(vector1, vector2) {
+    return vector1[0] * vector2[0] + vector1[1] * vector2[1];
 }
 
-function point(vector,dir) {
+function point(vector, dir) {
     var mag = getMag(vector);
-    return [Math.cos(dir)*mag,Math.sin(dir)*mag];
+    return [Math.cos(dir) * mag, Math.sin(dir) * mag];
 }
 
-function rotate(v,rad) {
+function rotate(v, rad) {
     var ang = getAngle(v);
-    if(v[0] == 0 && v[1] == -8) {
+    if (v[0] == 0 && v[1] == -8) {
         //console.log(v);
         //console.log("!");
         //console.log(ang);
         //console.log(rad);
         //console.log(point(v,rad+ang));
     }
-    return point(v,rad+ang);
+    return point(v, rad + ang);
 }
 
-function midpoint(p1,p2,t) {
-    return add(scale(p1,1-t),scale(p2,t));
+function midpoint(p1, p2, t) {
+    return add(scale(p1, 1 - t), scale(p2, t));
 }
 
 
-function drawVector(vector,pos,ctx) {
+function drawVector(vector, pos, ctx) {
     ctx.beginPath();
-    ctx.moveTo(pos[0],pos[1]);
-    ctx.lineTo(pos[0]+vector[0],pos[1]+vector[1]);
+    ctx.moveTo(pos[0], pos[1]);
+    ctx.lineTo(pos[0] + vector[0], pos[1] + vector[1]);
     ctx.stroke();
 }
 /* ------------------------------       PerfectFreehand      ------------------------------*/
@@ -2626,7 +2652,7 @@ function drawVector(vector,pos,ctx) {
  * @param options.end Cap, taper and easing for the end of the line.
  * @param options.last Whether to handle the points as a completed stroke.
  */
- function getStroke(points, options) {
+function getStroke(points, options) {
     if (options === void 0) { options = {}; }
     return getStrokeOutlinePoints(getStrokePoints(points, options), options);
 }
@@ -2659,7 +2685,7 @@ var FIXED_PI = PI + 0.0001;
  * @param options.end Cap, taper and easing for the end of the line.
  * @param options.last Whether to handle the points as a completed stroke.
  */
- function getStrokeOutlinePoints(points, options) {
+function getStrokeOutlinePoints(points, options) {
     if (options === void 0) { options = {}; }
     var _a = options.size, size = _a === void 0 ? 16 : _a, _b = options.smoothing, smoothing = _b === void 0 ? 0.5 : _b, _c = options.thinning, thinning = _c === void 0 ? 0.5 : _c, _d = options.simulatePressure, simulatePressure = _d === void 0 ? true : _d, _e = options.easing, easing = _e === void 0 ? function (t) { return t; } : _e, _f = options.start, start = _f === void 0 ? {} : _f, _g = options.end, end = _g === void 0 ? {} : _g, _h = options.last, isComplete = _h === void 0 ? false : _h;
     var _j = start.cap, capStart = _j === void 0 ? true : _j, _k = start.taper, taperStart = _k === void 0 ? 0 : _k, _l = start.easing, taperStartEase = _l === void 0 ? function (t) { return t * (2 - t); } : _l;
@@ -2955,12 +2981,12 @@ function getStrokePoints(points, options) {
     for (var i = 1; i < pts.length; i++) {
         var point = isComplete && i === max
             ? // If we're at the last point, and `options.last` is true,
-                // then add the actual input point.
-                pts[i].slice(0, 2)
+            // then add the actual input point.
+            pts[i].slice(0, 2)
             : // Otherwise, using the t calculated from the streamline
-                // option, interpolate a new point between the previous
-                // point the current point.
-                lrp(prev.point, pts[i], t);
+            // option, interpolate a new point between the previous
+            // point the current point.
+            lrp(prev.point, pts[i], t);
         // If the new point is the same as the previous point, skip ahead.
         if (isEqual(prev.point, point))
             continue;
@@ -3015,7 +3041,7 @@ function neg(A) {
  * @param B
  * @internal
  */
- function add(A, B) {
+function add(A, B) {
     return [A[0] + B[0], A[1] + B[1]];
 }
 /**
@@ -3024,7 +3050,7 @@ function neg(A) {
  * @param B
  * @internal
  */
- function sub(A, B) {
+function sub(A, B) {
     return [A[0] - B[0], A[1] - B[1]];
 }
 /**
@@ -3033,7 +3059,7 @@ function neg(A) {
  * @param n
  * @internal
  */
- function mul(A, n) {
+function mul(A, n) {
     return [A[0] * n, A[1] * n];
 }
 /**
@@ -3042,7 +3068,7 @@ function neg(A) {
  * @param B
  * @internal
  */
- function div(A, n) {
+function div(A, n) {
     return [A[0] / n, A[1] / n];
 }
 /**
@@ -3050,7 +3076,7 @@ function neg(A) {
  * @param A
  * @internal
  */
- function per(A) {
+function per(A) {
     return [A[1], -A[0]];
 }
 /**
@@ -3059,7 +3085,7 @@ function neg(A) {
  * @param B
  * @internal
  */
- function dpr(A, B) {
+function dpr(A, B) {
     return A[0] * B[0] + A[1] * B[1];
 }
 /**
@@ -3068,7 +3094,7 @@ function neg(A) {
  * @param B
  * @internal
  */
- function isEqual(A, B) {
+function isEqual(A, B) {
     return A[0] === B[0] && A[1] === B[1];
 }
 /**
@@ -3076,7 +3102,7 @@ function neg(A) {
  * @param A
  * @internal
  */
- function len(A) {
+function len(A) {
     return Math.hypot(A[0], A[1]);
 }
 /**
@@ -3084,7 +3110,7 @@ function neg(A) {
  * @param A
  * @internal
  */
- function len2(A) {
+function len2(A) {
     return A[0] * A[0] + A[1] * A[1];
 }
 /**
@@ -3093,7 +3119,7 @@ function neg(A) {
  * @param B
  * @internal
  */
- function dist2(A, B) {
+function dist2(A, B) {
     return len2(sub(A, B));
 }
 /**
@@ -3101,7 +3127,7 @@ function neg(A) {
  * @param A
  * @internal
  */
- function uni(A) {
+function uni(A) {
     return div(A, len(A));
 }
 /**
@@ -3110,7 +3136,7 @@ function neg(A) {
  * @param B
  * @internal
  */
- function dist(A, B) {
+function dist(A, B) {
     return Math.hypot(A[1] - B[1], A[0] - B[0]);
 }
 /**
@@ -3119,7 +3145,7 @@ function neg(A) {
  * @param B
  * @internal
  */
- function med(A, B) {
+function med(A, B) {
     return mul(add(A, B), 0.5);
 }
 /**
@@ -3129,7 +3155,7 @@ function neg(A) {
  * @param r rotation in radians
  * @internal
  */
- function rotAround(A, C, r) {
+function rotAround(A, C, r) {
     var s = Math.sin(r);
     var c = Math.cos(r);
     var px = A[0] - C[0];
@@ -3145,7 +3171,7 @@ function neg(A) {
  * @param t scalar
  * @internal
  */
- function lrp(A, B, t) {
+function lrp(A, B, t) {
     return add(A, mul(sub(B, A), t));
 }
 /**
@@ -3155,16 +3181,16 @@ function neg(A) {
  * @param c
  * @internal
  */
- function prj(A, B, c) {
+function prj(A, B, c) {
     return add(A, mul(B, c));
 }
 
 function handleEraserDrag(e) {
     if (!isEraserDragging) return;
-    
+
     var clickPoint = [e.offsetX, e.offsetY];
     var strokeRemoved = false;
-    
+
     // 反向遍历所有笔画
     for (var i = arrays_of_points.length - 1; i >= 0; i--) {
         if (isPointInStroke(clickPoint, arrays_of_points[i])) {
@@ -3175,17 +3201,17 @@ function handleEraserDrag(e) {
                 lineType: line_type_history[i],
                 index: i
             });
-            
+
             // 删除笔画
             arrays_of_points.splice(i, 1);
             perfect_cache.splice(i, 1);
             line_type_history.splice(i, 1);
-            
+
             strokeRemoved = true;
             break;
         }
     }
-    
+
     // 检查书法笔画
     if (!strokeRemoved && typeof strokes !== 'undefined' && strokes.length > 0) {
         for (var i = strokes.length - 1; i >= 0; i--) {
@@ -3196,23 +3222,23 @@ function handleEraserDrag(e) {
                     index: i,
                     lineType: 'C'
                 });
-                
+
                 strokes.splice(i, 1);
                 strokeRemoved = true;
                 break;
             }
         }
     }
-    
+
     // 如果有笔迹被移除，重绘画布
     if (strokeRemoved) {
         // 添加擦除操作到历史记录
         line_type_history.push('E'); // 'E' 表示 Eraser操作
         ts_undo_button.className = "active"; // 激活撤销按钮
-        
+
         // 设置操作类型为擦除
         strokeOperation = 'E';
-        
+
         // 检查是否所有笔迹都被擦除
         if (arrays_of_points.length === 0 && strokes.length === 0) {
             // 重置nextLine和nextPoint，确保下一次绘制正确开始
@@ -3220,10 +3246,10 @@ function handleEraserDrag(e) {
             nextPoint = 0;
             nextStroke = 0;
         }
-        
+
         // 重绘画布
         ts_redraw();
-        
+
         // 标记笔迹已变化，触发保存
         if (typeof strokesChanged !== 'undefined' && typeof save_strokes_debounced === 'function') {
             strokesChanged = true;
@@ -3237,9 +3263,9 @@ function switch_line_mode() {
     stop_drawing();
     lineMode = !lineMode;
     var lineButton = document.getElementById('ts_line_button');
-    if(lineMode) {
+    if (lineMode) {
         lineButton.className = 'active';
-        
+
         // 确保直线工具的属性在第一次使用时有合理的默认值
         if (lineColor === '#fff' && color !== '#fff') {
             lineColor = color; // 如果直线颜色未设置，则继承当前画笔颜色
@@ -3247,10 +3273,10 @@ function switch_line_mode() {
         if (lineWidth === 4 && line_width !== 4) {
             lineWidth = line_width; // 如果直线线宽未设置，则继承当前画笔线宽
         }
-        
+
         // 应用直线工具设置
         update_line_settings();
-        
+
         // Deactivate other modes
         ts_perfect_freehand_button.className = '';
         perfectFreehand = false;
@@ -3261,7 +3287,7 @@ function switch_line_mode() {
         }
         // 如果笔端擦除模式活跃，禁用它
         isPenEraserActive = false;
-        
+
         // 如果矩形模式活跃，禁用它
         if (rectangleMode) {
             rectangleMode = false;
@@ -3278,7 +3304,7 @@ function switch_line_mode() {
  */
 function setLineStyle(style) {
     lineStyle = style;
-    
+
     // 根据样式设置虚线模式
     if (style === 'dashed') {
         lineDashPattern = [10, 5]; // 10像素实线，5像素空白
@@ -3288,10 +3314,10 @@ function setLineStyle(style) {
         // 实线
         lineDashPattern = [];
     }
-    
+
     // 更新直线设置
     update_line_settings();
-    
+
     // 保存设置
     if (typeof pycmd === 'function') {
         pycmd('ankidraw_save_line_style:' + style);
@@ -3315,7 +3341,7 @@ function createLineStyleSlider() {
         sliderContainer.style.transition = '0.3s';
         sliderContainer.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
         sliderContainer.style.opacity = '0.5';
-        
+
         // 添加标题
         var sliderTitle = document.createElement('div');
         sliderTitle.textContent = 'Line Style';
@@ -3324,47 +3350,47 @@ function createLineStyleSlider() {
         sliderTitle.style.marginBottom = '5px';
         sliderTitle.style.textAlign = 'center';
         sliderContainer.appendChild(sliderTitle);
-        
+
         // 创建样式选项容器
         var styleOptions = document.createElement('div');
         styleOptions.style.display = 'flex';
         styleOptions.style.flexDirection = 'column';
         styleOptions.style.gap = '8px';
-        
+
         // 样式选项：实线
         var solidOption = createStyleOption('solid', 'Solid');
-        
+
         // 样式选项：虚线
         var dashedOption = createStyleOption('dashed', 'Dashed');
-        
+
         // 样式选项：波浪线
         var wavyOption = createStyleOption('wavy', 'Wavy');
-        
+
         // 添加样式选项到容器
         styleOptions.appendChild(solidOption);
         styleOptions.appendChild(dashedOption);
         styleOptions.appendChild(wavyOption);
         sliderContainer.appendChild(styleOptions);
-        
+
         // 鼠标进入容器时清除自动隐藏计时器和增加不透明度
-        sliderContainer.addEventListener('mouseenter', function() {
+        sliderContainer.addEventListener('mouseenter', function () {
             clearTimeout(lineStyleSliderTimeout);
             this.style.opacity = '1';
             this.style.transform = 'scale(1.05)';
         });
-        
+
         // 鼠标离开容器时设置自动隐藏和恢复透明度
-        sliderContainer.addEventListener('mouseleave', function() {
+        sliderContainer.addEventListener('mouseleave', function () {
             this.style.opacity = '0.5';
             this.style.transform = 'scale(1)';
             startLineStyleSliderHideTimer();
         });
-        
+
         // 将容器添加到文档
         document.body.appendChild(sliderContainer);
         lineStyleSlider = sliderContainer;
     }
-    
+
     return lineStyleSlider;
 }
 
@@ -3384,19 +3410,19 @@ function createStyleOption(style, label) {
     option.style.padding = '5px';
     option.style.borderRadius = '3px';
     option.style.transition = '0.2s';
-    
+
     // 当前选中的样式添加高亮
     if (style === lineStyle) {
         option.style.background = 'rgba(33, 150, 243, 0.3)';
     }
-    
+
     // 样式示例
     var preview = document.createElement('div');
     preview.style.width = '30px';
     preview.style.height = '20px';
     preview.style.marginRight = '10px';
     preview.style.position = 'relative';
-    
+
     // 为不同样式创建不同的预览
     var previewLine = document.createElement('div');
     previewLine.style.position = 'absolute';
@@ -3405,7 +3431,7 @@ function createStyleOption(style, label) {
     previewLine.style.right = '0';
     previewLine.style.height = '2px';
     previewLine.style.background = 'white';
-    
+
     if (style === 'solid') {
         // 实线不需要特殊处理
     } else if (style === 'dashed') {
@@ -3417,7 +3443,7 @@ function createStyleOption(style, label) {
         previewLine.style.borderTop = '2px solid transparent';
         previewLine.style.background = 'transparent';
         previewLine.style.height = '6px';
-        
+
         // 更新SVG波浪预览以使其更加明显
         var svg = `<svg width="30" height="6" xmlns="http://www.w3.org/2000/svg">
             <path d="M0,3 Q2,1 4,5 Q6,1 8,5 Q10,1 12,5 Q14,1 16,5 Q18,1 20,5 Q22,1 24,5 Q26,1 28,5 Q30,3" stroke="white" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -3426,9 +3452,9 @@ function createStyleOption(style, label) {
         previewLine.style.backgroundImage = `url("data:image/svg+xml;charset=utf-8,${encoded}")`;
         previewLine.style.backgroundRepeat = 'no-repeat';
     }
-    
+
     preview.appendChild(previewLine);
-    
+
     // 样式文本 - 使用英文标签
     var text = document.createElement('span');
     if (style === 'solid') {
@@ -3442,17 +3468,17 @@ function createStyleOption(style, label) {
     }
     text.style.color = 'white';
     text.style.fontSize = '12px';
-    
+
     option.appendChild(preview);
     option.appendChild(text);
-    
+
     // 添加点击事件
-    option.addEventListener('click', function() {
+    option.addEventListener('click', function () {
         setLineStyle(style);
-        
+
         // 更新所有选项的样式
         var options = document.querySelectorAll('.line-style-option');
-        options.forEach(function(opt) {
+        options.forEach(function (opt) {
             if (opt.dataset.style === style) {
                 opt.style.background = 'rgba(33, 150, 243, 0.3)';
             } else {
@@ -3463,20 +3489,20 @@ function createStyleOption(style, label) {
         // 立即隐藏滚动条
         hideLineStyleSlider();
     });
-    
+
     // 添加悬停效果
-    option.addEventListener('mouseenter', function() {
+    option.addEventListener('mouseenter', function () {
         if (this.dataset.style !== lineStyle) {
             this.style.background = 'rgba(255, 255, 255, 0.1)';
         }
     });
-    
-    option.addEventListener('mouseleave', function() {
+
+    option.addEventListener('mouseleave', function () {
         if (this.dataset.style !== lineStyle) {
             this.style.background = 'transparent';
         }
     });
-    
+
     return option;
 }
 
@@ -3485,29 +3511,29 @@ function createStyleOption(style, label) {
  */
 function showLineStyleSlider() {
     var sliderContainer = createLineStyleSlider();
-    
+
     // 清除可能存在的隐藏计时器
     clearTimeout(lineStyleSliderTimeout);
-    
+
     // 获取工具栏位置
     var toolbarElem = document.getElementById('pencil_button_bar');
     var lineButton = document.getElementById('ts_line_button');
-    
+
     if (toolbarElem && lineButton) {
         var toolbarRect = toolbarElem.getBoundingClientRect();
         var buttonRect = lineButton.getBoundingClientRect();
-        
+
         // 首先显示滑块以获取其尺寸
         sliderContainer.style.display = 'block';
         sliderContainer.style.visibility = 'hidden';
-        
+
         // 获取滑块的尺寸
         var sliderWidth = sliderContainer.offsetWidth;
         var sliderHeight = sliderContainer.offsetHeight;
-        
+
         // 计算初始位置
         var initialLeft, initialTop;
-        
+
         // 根据工具栏位置决定滚动条位置
         if (toolbarRect.left < window.innerWidth / 2) {
             // 工具栏在左侧，滚动条显示在右侧
@@ -3518,28 +3544,28 @@ function showLineStyleSlider() {
             initialLeft = buttonRect.left - sliderWidth - 10;
             initialTop = buttonRect.top;
         }
-        
+
         // 确保滑块在视口内
         // 限制右边界
         if (initialLeft + sliderWidth > window.innerWidth) {
             initialLeft = window.innerWidth - sliderWidth - 10;
         }
-        
+
         // 限制左边界
         if (initialLeft < 0) {
             initialLeft = 10;
         }
-        
+
         // 限制底部边界
         if (initialTop + sliderHeight > window.innerHeight) {
             initialTop = window.innerHeight - sliderHeight - 10;
         }
-        
+
         // 限制顶部边界
         if (initialTop < 0) {
             initialTop = 10;
         }
-        
+
         // 设置位置
         sliderContainer.style.left = initialLeft + 'px';
         sliderContainer.style.top = initialTop + 'px';
@@ -3550,10 +3576,10 @@ function showLineStyleSlider() {
         sliderContainer.style.top = '10px';
         sliderContainer.style.visibility = 'visible';
     }
-    
+
     // 显示选择器
     sliderContainer.style.display = 'block';
-    
+
     // 设置自动隐藏计时器
     startLineStyleSliderHideTimer();
 }
@@ -3564,9 +3590,9 @@ function showLineStyleSlider() {
 function startLineStyleSliderHideTimer() {
     // 清除可能存在的计时器
     clearTimeout(lineStyleSliderTimeout);
-    
+
     // 设置3秒后隐藏
-    lineStyleSliderTimeout = setTimeout(function() {
+    lineStyleSliderTimeout = setTimeout(function () {
         hideLineStyleSlider();
     }, 3000);
 }
@@ -3589,20 +3615,20 @@ function setupLineStyleEvents() {
     if (lineButton) {
         // 移除可能存在的旧事件处理器
         lineButton.removeEventListener('dblclick', handleLineButtonDblClick);
-        
+
         // 添加双击事件处理器
         lineButton.addEventListener('dblclick', handleLineButtonDblClick);
     }
-    
+
     // 添加点击空白处隐藏选择器的事件处理
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         // 如果选择器存在且可见
         if (lineStyleSlider && lineStyleSlider.style.display === 'block') {
             // 检查点击是否在选择器容器外
             var isOutsideSlider = !lineStyleSlider.contains(e.target);
             // 检查点击是否不是直线按钮（避免与双击事件冲突）
             var isNotLineButton = lineButton && !lineButton.contains(e.target);
-            
+
             if (isOutsideSlider && isNotLineButton) {
                 // 点击在选择器外部，立即隐藏选择器
                 hideLineStyleSlider();
@@ -3618,18 +3644,18 @@ function setupLineStyleEvents() {
 function handleLineButtonDblClick(e) {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // 确保直线模式已激活
     if (!lineMode) {
         switch_line_mode(); // 如果未激活，则激活直线模式
     }
-    
+
     // 显示样式选择面板
     showLineStyleSlider();
 }
 
 // 当DOM加载完成后，设置直线样式事件
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     setupLineStyleEvents();
 });
 
@@ -3668,25 +3694,25 @@ function handlePenEraser(e) {
     if (e.pointerType === 'touch') {
         return;
     }
-    
+
     // 检查是否是Surface Pen (pointerType为"pen")并且使用笔端擦除按钮(button为5)
     if (e.pointerType === 'pen' && e.button === 5) {
         e.preventDefault();
         e.stopPropagation();
-        
+
         // 阻止事件继续传播到其他处理程序
         if (e.stopImmediatePropagation) {
             e.stopImmediatePropagation();
         }
-        
+
         isPenEraserActive = true;
-        
+
         // 确保常规橡皮擦按钮显示为非激活状态，无论它之前状态如何
         var eraserButton = document.getElementById('ts_eraser_button');
         if (eraserButton && eraserButton.classList.contains('active')) {
             // 禁用常规橡皮擦模式，但不调用toggleEraser()以避免影响当前的笔端擦除操作
             eraserButton.classList.remove('active');
-            
+
             // 如果eraserMode是全局变量，确保它也得到更新，但保持笔端擦除功能不受影响
             if (typeof eraserMode !== 'undefined') {
                 // 保存当前状态以便在笔端擦除结束后可以恢复
@@ -3694,20 +3720,20 @@ function handlePenEraser(e) {
                 eraserMode = false;
             }
         }
-        
+
         // 如果正在绘制矩形，取消矩形绘制
         if (isDrawingRect) {
             isDrawingRect = false;
             secondary_ctx.clearRect(0, 0, secondary_canvas.width, secondary_canvas.height);
         }
-        
+
         // 暂时移除矩形工具事件监听器，避免同时绘制矩形
         if (rectangleMode && typeof pointerDownRectangle === 'function') {
             canvas.removeEventListener('pointerdown', pointerDownRectangle);
             canvas.removeEventListener('pointermove', pointerMoveRectangle);
             window.removeEventListener('pointerup', pointerUpRectangle);
         }
-        
+
         // 如果最后一次绘制是一个孤立的点（可能是擦除开始时意外创建的）
         // 检查是否已经绘制了点并且是最新添加的
         if (arrays_of_points.length > 0) {
@@ -3721,7 +3747,7 @@ function handlePenEraser(e) {
                 ts_redraw(); // 重绘以消除这个点
             }
         }
-        
+
         // 立即处理擦除操作
         handlePenEraserDrag(e);
     }
@@ -3733,22 +3759,22 @@ function handlePenEraserMove(e) {
     if (e.pointerType === 'touch') {
         return;
     }
-    
+
     if (isPenEraserActive && e.pointerType === 'pen') {
         e.preventDefault();
         e.stopPropagation();
-        
+
         // 阻止事件继续传播到其他处理程序
         if (e.stopImmediatePropagation) {
             e.stopImmediatePropagation();
         }
-        
+
         // 确保在移动过程中橡皮擦按钮保持非激活状态
         var eraserButton = document.getElementById('ts_eraser_button');
         if (eraserButton && eraserButton.classList.contains('active')) {
             eraserButton.classList.remove('active');
         }
-        
+
         handlePenEraserDrag(e);
     }
 }
@@ -3759,17 +3785,17 @@ function stopPenEraser(e) {
     if (e.pointerType === 'touch') {
         return;
     }
-    
+
     if (e.pointerType === 'pen' && e.button === 5) {
         isPenEraserActive = false;
-        
+
         // 恢复矩形工具事件监听器（如果矩形模式仍然激活）
         if (rectangleMode && typeof pointerDownRectangle === 'function') {
             canvas.addEventListener('pointerdown', pointerDownRectangle);
             canvas.addEventListener('pointermove', pointerMoveRectangle);
             window.addEventListener('pointerup', pointerUpRectangle);
         }
-        
+
         // 检查是否需要恢复之前的橡皮擦状态
         if (window.previousEraserMode === true) {
             // 如果之前橡皮擦是激活的，恢复其状态，但使用UI更新而不是toggleEraser函数
@@ -3777,16 +3803,16 @@ function stopPenEraser(e) {
             if (eraserButton) {
                 eraserButton.classList.add('active');
             }
-            
+
             // 恢复eraserMode全局变量
             if (typeof eraserMode !== 'undefined') {
                 eraserMode = true;
             }
-            
+
             // 清除保存的状态
             window.previousEraserMode = undefined;
         }
-        
+
         // 如果之前有擦除操作，确保保存笔迹
         if (line_type_history.includes('E')) {
             // 标记笔迹已变化，触发保存
@@ -3803,13 +3829,13 @@ function handlePenEraserDrag(e) {
     if (e && e.pointerType === 'touch') {
         return;
     }
-    
+
     if (!isPenEraserActive) return;
-    
+
     var rect = canvas.getBoundingClientRect();
     var clickPoint = [e.clientX - rect.left, e.clientY - rect.top];
     var strokeRemoved = false;
-    
+
     // 反向遍历所有笔画
     for (var i = arrays_of_points.length - 1; i >= 0; i--) {
         if (isPointInStroke(clickPoint, arrays_of_points[i])) {
@@ -3822,17 +3848,17 @@ function handlePenEraserDrag(e) {
                     index: i
                 });
             }
-            
+
             // 删除笔画
             arrays_of_points.splice(i, 1);
             perfect_cache.splice(i, 1);
             line_type_history.splice(i, 1);
-            
+
             strokeRemoved = true;
             break;
         }
     }
-    
+
     // 检查书法笔画
     if (!strokeRemoved && typeof strokes !== 'undefined' && strokes.length > 0) {
         for (var i = strokes.length - 1; i >= 0; i--) {
@@ -3845,14 +3871,14 @@ function handlePenEraserDrag(e) {
                         lineType: 'C'
                     });
                 }
-                
+
                 strokes.splice(i, 1);
                 strokeRemoved = true;
                 break;
             }
         }
     }
-    
+
     // 检查直线
     if (!strokeRemoved) {
         for (var i = arrays_of_points.length - 1; i >= 0; i--) {
@@ -3860,12 +3886,12 @@ function handlePenEraserDrag(e) {
             if (arrays_of_points[i].length === 2) {
                 var lineStart = arrays_of_points[i][0];
                 var lineEnd = arrays_of_points[i][1];
-                
+
                 // 检查点击点是否接近线段
                 if (distanceToSegment(
-                    {x: clickPoint[0], y: clickPoint[1]},
-                    {x: lineStart[0], y: lineStart[1]},
-                    {x: lineEnd[0], y: lineEnd[1]}
+                    { x: clickPoint[0], y: clickPoint[1] },
+                    { x: lineStart[0], y: lineStart[1] },
+                    { x: lineEnd[0], y: lineEnd[1] }
                 ) <= 10) { // 10像素的容差
                     // 保存被擦除的直线
                     if (typeof erasedStrokes !== 'undefined') {
@@ -3876,28 +3902,28 @@ function handlePenEraserDrag(e) {
                             index: i
                         });
                     }
-                    
+
                     // 删除直线
                     arrays_of_points.splice(i, 1);
                     perfect_cache.splice(i, 1);
                     line_type_history.splice(i, 1);
-                    
+
                     strokeRemoved = true;
                     break;
                 }
             }
         }
     }
-    
+
     // 如果有笔迹被移除，重绘画布
     if (strokeRemoved) {
         // 添加擦除操作到历史记录
         line_type_history.push('E'); // 'E' 表示 Eraser操作
         ts_undo_button.className = "active"; // 激活撤销按钮
-        
+
         // 设置操作类型为擦除
         strokeOperation = 'E';
-        
+
         // 检查是否所有笔迹都被擦除
         if (arrays_of_points.length === 0 && (typeof strokes === 'undefined' || strokes.length === 0)) {
             // 重置nextLine和nextPoint，确保下一次绘制正确开始
@@ -3907,14 +3933,14 @@ function handlePenEraserDrag(e) {
                 nextStroke = 0;
             }
         }
-        
+
         // 重绘画布
         ts_redraw();
-        
+
         // 标记笔迹已变化，触发保存
         strokesChanged = true;
         save_strokes_debounced();
-        
+
         // 添加调试日志
         console.log('AnkiDraw Debug: 笔迹擦除完成，触发保存');
     }
@@ -3924,10 +3950,10 @@ function handlePenEraserDrag(e) {
 function getEraserTolerance(strokeType) {
     // 获取橡皮擦大小，如果未定义则使用默认值
     var eraserSize = typeof eraserIndicatorSize !== 'undefined' ? eraserIndicatorSize : 4;
-    
+
     // 计算基础容差 - 橡皮擦越大，容差越大
     var baseTolerance = Math.max(eraserSize / 2, 1);
-    
+
     // 根据笔画类型进行调整
     if (strokeType === 'line') {
         return baseTolerance;
@@ -3946,33 +3972,33 @@ function getEraserTolerance(strokeType) {
 function isPointNearStroke(point, strokePoints) {
     // 根据笔迹类型获取适当的容差
     var tolerance = getEraserTolerance((strokePoints.length === 2) ? 'line' : 'normal');
-    
+
     // 如果是直线（只有两个点）
     if (strokePoints.length === 2) {
         var p1 = strokePoints[0];
         var p2 = strokePoints[1];
-        
+
         return distanceToSegment(
-            {x: point[0], y: point[1]},
-            {x: p1[0], y: p1[1]},
-            {x: p2[0], y: p2[1]}
+            { x: point[0], y: point[1] },
+            { x: p1[0], y: p1[1] },
+            { x: p2[0], y: p2[1] }
         ) <= tolerance;
     }
-    
+
     // 检查点到每个线段的距离
     for (var i = 0; i < strokePoints.length - 1; i++) {
         var p1 = strokePoints[i];
         var p2 = strokePoints[i + 1];
-        
+
         if (distanceToSegment(
-            {x: point[0], y: point[1]},
-            {x: p1[0], y: p1[1]},
-            {x: p2[0], y: p2[1]}
+            { x: point[0], y: point[1] },
+            { x: p1[0], y: p1[1] },
+            { x: p2[0], y: p2[1] }
         ) <= tolerance) {
             return true;
         }
     }
-    
+
     return false;
 }
 
@@ -3980,19 +4006,19 @@ function isPointNearStroke(point, strokePoints) {
 function isPointNearCalligraphyStrokeWithTolerance(point, stroke) {
     // 获取书法笔迹的容差
     var tolerance = getEraserTolerance('calligraphy');
-    
+
     // 遍历每个段的控制点
     for (var i = 0; i < stroke.segments.length; i++) {
         var segment = stroke.segments[i];
         var controlPoints = segment.controlPoints;
-        
+
         // 检查每个控制点对
         for (var j = 0; j < controlPoints.length - 1; j++) {
             var p1 = controlPoints[j];
             var p2 = controlPoints[j + 1];
-            
+
             if (distanceToSegment(
-                {x: point[0], y: point[1]},
+                { x: point[0], y: point[1] },
                 p1,
                 p2
             ) <= tolerance) {
@@ -4000,7 +4026,7 @@ function isPointNearCalligraphyStrokeWithTolerance(point, stroke) {
             }
         }
     }
-    
+
     return false;
 }
 
@@ -4015,7 +4041,7 @@ function set_rectangle_width(newWidth) {
 }
 
 // 专门更新矩形工具的设置
-function update_rectangle_settings(){
+function update_rectangle_settings() {
     secondary_ctx.lineJoin = 'round';
     secondary_ctx.lineCap = 'round';
     secondary_ctx.lineWidth = rectangleWidth; // 使用矩形专用的线宽
@@ -4028,12 +4054,12 @@ function update_rectangle_settings(){
 function switch_rectangle_mode() {
     stop_drawing();
     rectangleMode = !rectangleMode;
-    
+
     var rectangleButton = document.getElementById('ts_rectangle_button');
-    
+
     if (rectangleMode) {
         rectangleButton.className = 'active';
-        
+
         // 确保矩形工具的属性在第一次使用时有合理的默认值
         if (rectangleColor === '#fff' && color !== '#fff') {
             rectangleColor = color; // 如果矩形颜色未设置，则继承当前画笔颜色
@@ -4041,38 +4067,38 @@ function switch_rectangle_mode() {
         if (rectangleWidth === 2 && line_width !== 2) {
             rectangleWidth = line_width; // 如果矩形线宽未设置，则继承当前画笔线宽
         }
-        
+
         // 禁用其他模式
         ts_perfect_freehand_button.className = '';
         perfectFreehand = false;
         ts_kanji_button.className = '';
         calligraphy = false;
-        
+
         // 停用直线模式
         lineMode = false;
         document.getElementById('ts_line_button').className = '';
-        
+
         if (eraserMode) {
             toggleEraser(false);
         }
-        
+
         // 如果笔端擦除模式活跃，禁用它
         isPenEraserActive = false;
-        
+
         // 为矩形模式设置正确的事件监听器
         if (typeof pointerDownRectangle === 'function') {
             // 确保事件监听器只添加一次
             canvas.removeEventListener('pointerdown', pointerDownRectangle);
             canvas.removeEventListener('pointermove', pointerMoveRectangle);
             window.removeEventListener('pointerup', pointerUpRectangle);
-            
+
             canvas.addEventListener('pointerdown', pointerDownRectangle);
             canvas.addEventListener('pointermove', pointerMoveRectangle);
             window.addEventListener('pointerup', pointerUpRectangle);
         }
     } else {
         rectangleButton.className = '';
-        
+
         // 移除矩形工具的事件监听器
         if (typeof pointerDownRectangle === 'function') {
             canvas.removeEventListener('pointerdown', pointerDownRectangle);
@@ -4089,26 +4115,26 @@ function pointerDownRectangle(e) {
     if (e.pointerType === 'touch') {
         return;
     }
-    
+
     if (!rectangleMode || !visible) return;
-    
+
     // 检查是否是橡皮擦模式或侧键擦除模式，或者笔端擦除模式，如果是则不绘制矩形
-    if (eraserMode || isSidePenButtonEraser || isPenEraserActive || 
+    if (eraserMode || isSidePenButtonEraser || isPenEraserActive ||
         (e.pointerType === 'pen' && (e.button === 1 || e.button === 2 || e.button === 5))) {
         return;
     }
-    
+
     // 只对笔和鼠标事件阻止默认行为
     if (e.pointerType === 'pen' || e.pointerType === 'mouse') {
         e.preventDefault();
     }
-    
+
     isDrawingRect = true;
-    
+
     // 记录起始点
     rectStartX = e.offsetX;
     rectStartY = e.offsetY;
-    
+
     // 清除可能的临时绘制
     secondary_ctx.clearRect(0, 0, secondary_canvas.width, secondary_canvas.height);
 }
@@ -4118,22 +4144,22 @@ function pointerMoveRectangle(e) {
     if (e.pointerType === 'touch') {
         return;
     }
-    
+
     if (!isDrawingRect || !rectangleMode || !visible) return;
-    
+
     // 检查是否是橡皮擦模式或侧键擦除模式，如果是则不绘制矩形
     if (eraserMode || isSidePenButtonEraser) {
         return;
     }
-    
+
     // 只对笔和鼠标事件阻止默认行为
     if (e.pointerType === 'pen' || e.pointerType === 'mouse') {
         e.preventDefault();
     }
-    
+
     // 清除临时绘制
     secondary_ctx.clearRect(0, 0, secondary_canvas.width, secondary_canvas.height);
-    
+
     // 绘制矩形预览
     secondary_ctx.beginPath();
     secondary_ctx.strokeStyle = rectangleColor;
@@ -4152,51 +4178,51 @@ function pointerUpRectangle(e) {
     if (e.pointerType === 'touch') {
         return;
     }
-    
+
     if (!isDrawingRect || !rectangleMode) return;
-    
+
     // 检查是否是橡皮擦模式或侧键擦除模式，如果是则不绘制矩形
     if (eraserMode || isSidePenButtonEraser) {
         isDrawingRect = false;
         return;
     }
-    
+
     // 只对笔和鼠标事件阻止默认行为
     if (e.pointerType === 'pen' || e.pointerType === 'mouse') {
         e.preventDefault();
     }
-    
+
     isDrawingRect = false;
-    
+
     // 清除临时绘制
     secondary_ctx.clearRect(0, 0, secondary_canvas.width, secondary_canvas.height);
-    
+
     // 添加矩形到主画布
-    var startPoint = [rectStartX, rectStartY, rectangleColor, rectangleWidth, {style: 'rectangle', dashPattern: []}];
+    var startPoint = [rectStartX, rectStartY, rectangleColor, rectangleWidth, { style: 'rectangle', dashPattern: [] }];
     var endPoint = [e.offsetX, e.offsetY];
-    
+
     // 添加到点集合中
     arrays_of_points.push([startPoint, endPoint]);
-    
+
     // 添加到线型历史记录中
     line_type_history.push("R"); // 使用R表示矩形类型
-    
+
     // 创建Perfect Freehand的缓存项
     perfect_cache.push(null);
-    
+
     // 重绘画布
     ts_redraw();
-    
+
     // 激活撤销按钮
     ts_undo_button.className = "active";
-    
+
     // 设置操作类型为添加
     strokeOperation = 'A';
-    
+
     // 标记笔迹已变化，触发保存
     strokesChanged = true;
     save_strokes_debounced();
-    
+
     // 添加调试日志
     console.log('AnkiDraw Debug: 矩形绘制完成，触发保存');
 }
@@ -4220,7 +4246,7 @@ function initializeRectangleSettings(color, width) {
     // 保存矩形工具的颜色和宽度到全局变量
     rectangleColor = color;
     rectangleWidth = width;
-    
+
     // 更新矩形工具设置
     update_rectangle_settings();
 }
@@ -4243,15 +4269,15 @@ function handleSidePenButtonDown(e) {
     if (e.pointerType === 'pen' && (e.button === 1 || e.button === 2)) {
         e.preventDefault();
         e.stopPropagation();
-        
+
         if (!isSidePenButtonEraser) {
             // 如果当前没有激活侧键橡皮擦，保存当前工具状态并激活橡皮擦
             saveCurrentToolState();
             activateSidePenButtonEraser();
-            
+
             // 添加body类
             document.body.classList.add('side-button-active');
-            
+
             // 如果是在绘制矩形中，取消矩形绘制
             if (isDrawingRect) {
                 isDrawingRect = false;
@@ -4260,7 +4286,7 @@ function handleSidePenButtonDown(e) {
         } else {
             // 如果已经激活了侧键橡皮擦，恢复之前的工具状态
             deactivateSidePenButtonEraser();
-            
+
             // 移除body类
             document.body.classList.remove('side-button-active');
         }
@@ -4281,12 +4307,12 @@ function saveCurrentToolState() {
 // 激活侧键橡皮擦模式
 function activateSidePenButtonEraser() {
     isSidePenButtonEraser = true;
-    
+
     // 如果当前不是橡皮擦模式，切换到橡皮擦模式
     if (typeof toggleEraser === 'function' && !eraserMode) {
         toggleEraser(true, true); // 第二个参数表示这是侧键模式
     }
-    
+
     // 更新UI状态
     if (typeof eraserMode !== 'undefined' && eraserMode) {
         var eraserButton = document.getElementById('ts_eraser_button');
@@ -4300,26 +4326,26 @@ function activateSidePenButtonEraser() {
 // 取消激活侧键橡皮擦模式
 function deactivateSidePenButtonEraser() {
     isSidePenButtonEraser = false;
-    
+
     // 移除body类
     document.body.classList.remove('side-button-active');
-    
+
     // 如果当前是橡皮擦模式且是侧键激活的，关闭橡皮擦并恢复之前的工具
     if (typeof eraserMode !== 'undefined' && eraserMode) {
         toggleEraser(false, true); // 关闭橡皮擦
-        
+
         // 移除侧键激活标记
         var eraserButton = document.getElementById('ts_eraser_button');
         if (eraserButton) {
             eraserButton.classList.remove('side-button-active');
         }
-        
+
         // 清除提示信息
         var hint = document.getElementById('side-button-mode-hint');
         if (hint) {
             hint.parentNode.removeChild(hint);
         }
-        
+
         // 恢复之前的工具状态
         restorePreviousToolState();
     }
@@ -4333,21 +4359,21 @@ function restorePreviousToolState() {
     } else if (!previousToolState.perfectFreehand && perfectFreehand) {
         switch_perfect_freehand();
     }
-    
+
     // 恢复之前的书法模式状态
     if (previousToolState.calligraphy && !calligraphy) {
         switch_kanji_mode();
     } else if (!previousToolState.calligraphy && calligraphy) {
         switch_kanji_mode();
     }
-    
+
     // 恢复之前的直线模式状态
     if (previousToolState.lineMode && !lineMode) {
         switch_line_mode();
     } else if (!previousToolState.lineMode && lineMode) {
         switch_line_mode();
     }
-    
+
     // 恢复之前的矩形模式状态
     if (previousToolState.rectangleMode && !rectangleMode) {
         switch_rectangle_mode();
@@ -4358,7 +4384,7 @@ function restorePreviousToolState() {
 
 function blackboard_init() {
     // 初始化各种工具和事件监听器
-    
+
     // 设置各工具的初始状态
     update_pen_settings();
     if (typeof update_line_settings === 'function') {
@@ -4367,45 +4393,45 @@ function blackboard_init() {
     if (typeof update_rectangle_settings === 'function') {
         update_rectangle_settings();
     }
-    
+
     // 设置直线样式选择器
     if (typeof setupLineStyleEvents === 'function') {
         setupLineStyleEvents();
     }
-    
+
     // 初始化Surface Pen侧键橡皮擦功能
     setupSidePenButtonEraser();
-    
+
     // 设置Surface Pen笔端擦除事件监听器
     canvas.addEventListener('pointerdown', handlePenEraser);
     canvas.addEventListener('pointermove', handlePenEraserMove);
     window.addEventListener('pointerup', stopPenEraser);
-    
+
     // 如果有eraser模块，设置橡皮擦事件监听器
     if (typeof setupEraserEvents === 'function') {
         setupEraserEvents();
     }
-    
+
     // 添加对触摸事件的特殊处理，确保允许默认滚动行为
-    canvas.addEventListener('touchstart', function(e) {
+    canvas.addEventListener('touchstart', function (e) {
         // 允许默认的触摸滚动行为
-    }, {passive: true});
-    
-    canvas.addEventListener('touchmove', function(e) {
+    }, { passive: true });
+
+    canvas.addEventListener('touchmove', function (e) {
         // 允许默认的触摸滚动行为
-    }, {passive: true});
-    
-    canvas.addEventListener('touchend', function(e) {
+    }, { passive: true });
+
+    canvas.addEventListener('touchend', function (e) {
         // 允许默认的触摸滚动行为
-    }, {passive: true});
-    
+    }, { passive: true });
+
     console.log("AnkiDraw: Blackboard initialized with Surface Pen eraser support and touch scrolling");
 }
 
 // 调用blackboard初始化函数
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // 确保DOM完全加载后再初始化
-    setTimeout(function() {
+    setTimeout(function () {
         blackboard_init();
     }, 500);
 });
@@ -4426,17 +4452,17 @@ function serialize_strokes() {
             strokes: typeof strokes !== 'undefined' ? strokes : [],  // 添加书法笔画数据
             lastModified: new Date().getTime()
         };
-        
+
         // 只有在添加笔迹操作时才更新窗口大小
         if (strokeOperation === 'A') {
             // 记录当前窗口大小 - 使用多种方法获取高度
             var currentWindowWidth = window.innerWidth;
             var currentWindowHeight = window.innerHeight;
-            
+
             // 获取设备像素比
             var dpr = window.devicePixelRatio || 1;
             console.log('AnkiDraw Debug: 当前设备像素比(DPR):', dpr);
-            
+
             // 获取其他可能的高度测量值
             var card = document.getElementsByClassName('card')[0];
             var docHeight = Math.max(
@@ -4450,7 +4476,7 @@ function serialize_strokes() {
                 document.body.clientHeight
             );
             var cardHeight = card ? Math.max(card.scrollHeight, card.offsetHeight, card.clientHeight) : 0;
-            
+
             // 选择最大的合理高度作为基准
             var baseHeight = Math.max(currentWindowHeight, docHeight, bodyHeight, cardHeight);
             console.log('AnkiDraw Debug: 高度测量值:', {
@@ -4460,7 +4486,7 @@ function serialize_strokes() {
                 cardHeight: cardHeight,
                 baseHeight: baseHeight
             });
-            
+
             // 对Windows系统，使用更精确的补偿逻辑
             var isWindows = navigator.userAgent.indexOf('Windows') !== -1;
             var adjustedHeight = baseHeight;
@@ -4479,7 +4505,7 @@ function serialize_strokes() {
                     adjusted: adjustedHeight
                 });
             }
-            
+
             // 更新窗口大小信息 - 保存所有测量值供后续分析
             strokeData.window_size = {
                 width: currentWindowWidth,
@@ -4492,16 +4518,16 @@ function serialize_strokes() {
                 baseHeight: baseHeight,
                 isWindows: isWindows
             };
-            
+
             // 更新最后保存的窗口大小
             lastWindowSize.width = currentWindowWidth;
             lastWindowSize.height = adjustedHeight;
-            
-            console.log('AnkiDraw Debug: 笔迹数据对象创建成功', 
-                        'points数组长度:', arrays_of_points.length,
-                        'line_type_history长度:', line_type_history.length,
-                        '原始窗口大小: 宽=' + currentWindowWidth + ', 高=' + currentWindowHeight,
-                        '调整后窗口大小: 宽=' + currentWindowWidth + ', 高=' + adjustedHeight);
+
+            console.log('AnkiDraw Debug: 笔迹数据对象创建成功',
+                'points数组长度:', arrays_of_points.length,
+                'line_type_history长度:', line_type_history.length,
+                '原始窗口大小: 宽=' + currentWindowWidth + ', 高=' + currentWindowHeight,
+                '调整后窗口大小: 宽=' + currentWindowWidth + ', 高=' + adjustedHeight);
         }
         // 对于撤销和擦除操作，使用最后保存的窗口大小
         else if (lastWindowSize.width > 0 && lastWindowSize.height > 0) {
@@ -4511,17 +4537,17 @@ function serialize_strokes() {
                 dpr: window.devicePixelRatio || 1,
                 originalHeight: lastWindowSize.height // 对于撤销和擦除操作，originalHeight就是调整后的高度
             };
-            
-            console.log('AnkiDraw Debug: 使用最后保存的窗口大小', 
-                        'width:', lastWindowSize.width, 
-                        'height:', lastWindowSize.height);
+
+            console.log('AnkiDraw Debug: 使用最后保存的窗口大小',
+                'width:', lastWindowSize.width,
+                'height:', lastWindowSize.height);
         }
-        
-        console.log('AnkiDraw Debug: 笔迹数据对象创建成功', 
-                    'points数组长度:', arrays_of_points.length,
-                    'line_type_history长度:', line_type_history.length,
-                    '操作类型:', strokeOperation);
-        
+
+        console.log('AnkiDraw Debug: 笔迹数据对象创建成功',
+            'points数组长度:', arrays_of_points.length,
+            'line_type_history长度:', line_type_history.length,
+            '操作类型:', strokeOperation);
+
         // 将对象转换为JSON字符串
         var jsonStr = JSON.stringify(strokeData);
         console.log('AnkiDraw Debug: 序列化完成，JSON长度:', jsonStr.length);
@@ -4547,26 +4573,26 @@ function save_strokes() {
         console.log('AnkiDraw Debug: 笔迹数据正在处理中，跳过保存');
         return;
     }
-    
+
     try {
         console.log('AnkiDraw Debug: 开始保存笔迹数据，是否仅正面笔迹:', isQuestionSide);
         isProcessingStrokeData = true;
-        
+
         // 确保有卡片ID
         if (!currentCardId) {
             console.error('AnkiDraw Error: 保存笔迹失败，没有卡片ID');
             isProcessingStrokeData = false;
             return;
         }
-        
+
         console.log('AnkiDraw Debug: 准备保存卡片ID:', currentCardId);
         // 序列化笔迹数据
         var strokeData = serialize_strokes();
-        
+
         // 通过pycmd发送到Python端保存
         if (typeof pycmd === 'function') {
             console.log('AnkiDraw Debug: 发送笔迹数据到Python端，数据长度:', strokeData.length);
-            
+
             // 获取窗口大小信息 - 只有在添加笔迹操作时才发送
             if (strokeOperation === 'A') {
                 var windowWidth = window.innerWidth;
@@ -4581,7 +4607,7 @@ function save_strokes() {
         } else {
             console.error('AnkiDraw Error: pycmd函数不可用，无法保存笔迹');
         }
-        
+
         // 重置变化标记
         strokesChanged = false;
     } catch (e) {
@@ -4597,14 +4623,14 @@ function save_strokes() {
 function save_strokes_debounced() {
     // 如果没有卡片ID，不执行保存
     if (!currentCardId) return;
-    
+
     // 清除之前的计时器
     if (saveDebounceTimer) {
         clearTimeout(saveDebounceTimer);
     }
-    
+
     // 设置新的计时器，延迟1秒后保存
-    saveDebounceTimer = setTimeout(function() {
+    saveDebounceTimer = setTimeout(function () {
         // 只有在笔迹发生变化时才保存
         if (strokesChanged) {
             save_strokes();
@@ -4623,14 +4649,14 @@ function load_saved_strokes(strokesJson, isQuestionOnly) {
         console.log('AnkiDraw Debug: 笔迹数据正在处理中，跳过加载');
         return;
     }
-    
+
     try {
         console.log('AnkiDraw Debug: 开始加载笔迹数据，数据长度:', strokesJson.length, '是否仅正面笔迹:', isQuestionOnly);
         isProcessingStrokeData = true;
-        
+
         // 更新全局变量
         isQuestionSide = isQuestionOnly !== false;
-        
+
         // 解析JSON数据
         console.log('AnkiDraw Debug: 解析JSON数据');
         let strokeData;
@@ -4651,11 +4677,11 @@ function load_saved_strokes(strokesJson, isQuestionOnly) {
                 throw deepError;
             }
         }
-        
+
         // 非问题侧且当前存在已加载的笔迹，并且正在显示答案，需要考虑合并正面笔迹
         if (!isQuestionOnly && arrays_of_points.length > 0 && !isQuestionSide) {
             console.log('AnkiDraw Debug: 显示答案时，尝试保留当前笔迹(可能包含正面笔迹)');
-            
+
             // 如果新加载的数据(背面笔迹)和当前已有的数据(正面笔迹)是不同的，进行合并
             // 比较第一个笔画是否不同来判断是否需要合并
             let needMerge = false;
@@ -4667,59 +4693,59 @@ function load_saved_strokes(strokesJson, isQuestionOnly) {
                     needMerge = true;
                 }
             }
-            
+
             if (needMerge) {
                 console.log('AnkiDraw Debug: 当前显示答案，保留正面笔迹并合并新加载的背面笔迹');
-                
+
                 // 保存当前正面笔迹数据
                 let currentArraysOfPoints = arrays_of_points;
                 let currentLineTypeHistory = line_type_history;
                 let currentPerfectCache = perfect_cache || [];
                 let currentStrokes = strokes || [];
-                
+
                 // 清除当前画布，准备合并
                 console.log('AnkiDraw Debug: 清除当前画布，准备合并笔迹');
                 ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-                
+
                 // 合并正面笔迹与新加载的背面笔迹
                 strokeData.arrays_of_points = currentArraysOfPoints.concat(strokeData.arrays_of_points);
                 strokeData.line_type_history = currentLineTypeHistory.concat(strokeData.line_type_history);
-                
+
                 // 处理书法笔画数据
                 if (strokeData.strokes && currentStrokes.length > 0) {
                     strokeData.strokes = currentStrokes.concat(strokeData.strokes);
                 } else if (currentStrokes.length > 0) {
                     strokeData.strokes = currentStrokes;
                 }
-                
+
                 // 处理完美手写缓存
                 if (strokeData.perfect_cache && currentPerfectCache.length > 0) {
                     strokeData.perfect_cache = currentPerfectCache.concat(strokeData.perfect_cache);
                 } else if (currentPerfectCache.length > 0) {
                     strokeData.perfect_cache = currentPerfectCache;
                 }
-                
+
                 console.log('AnkiDraw Debug: 完成笔迹合并，合并后points数组长度:', strokeData.arrays_of_points.length);
-                
+
                 // 重置变化标记，触发保存
                 strokesChanged = true;
                 save_strokes_debounced();
             }
         }
-        
+
         // 清除当前画布
         console.log('AnkiDraw Debug: 清除当前画布');
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        
+
         // 加载笔迹数据
         console.log('AnkiDraw Debug: 加载笔迹数据到内存');
         arrays_of_points = strokeData.arrays_of_points || [];
         line_type_history = strokeData.line_type_history || [];
         perfect_cache = strokeData.perfect_cache || [];
-        
+
         console.log('AnkiDraw Debug: 加载完成，points数组长度:', arrays_of_points.length,
-                   'line_type_history长度:', line_type_history.length);
-        
+            'line_type_history长度:', line_type_history.length);
+
         // 如果数据中有strokes数组（用于书法功能），也加载它
         if (strokeData.strokes) {
             console.log('AnkiDraw Debug: 加载书法笔画数据');
@@ -4727,26 +4753,26 @@ function load_saved_strokes(strokesJson, isQuestionOnly) {
         } else {
             strokes = [];
         }
-        
+
         // 确保重绘前调整画布大小
         console.log('AnkiDraw Debug: 调整画布大小');
         resize();
-        
+
         // 重绘所有笔迹
         console.log('AnkiDraw Debug: 重绘所有笔迹');
         ts_redraw();
-        
+
         console.log('AnkiDraw Debug: 成功加载笔迹数据，卡片ID:', currentCardId, '是否仅正面笔迹:', isQuestionSide);
-        
+
         // 从加载的数据中提取窗口大小并保存到lastWindowSize
         if (strokeData.window_size) {
             lastWindowSize.width = strokeData.window_size.width;
             lastWindowSize.height = strokeData.window_size.height;
-            console.log('AnkiDraw Debug: 加载笔迹时更新最后保存的窗口大小:', 
-                       'width:', lastWindowSize.width, 
-                       'height:', lastWindowSize.height);
+            console.log('AnkiDraw Debug: 加载笔迹时更新最后保存的窗口大小:',
+                'width:', lastWindowSize.width,
+                'height:', lastWindowSize.height);
         }
-        
+
         // 加载后重置变化标记和操作类型，防止立即触发保存
         strokesChanged = false;
         strokeOperation = '';
@@ -4760,29 +4786,29 @@ function load_saved_strokes(strokesJson, isQuestionOnly) {
 }
 
 // 获取当前卡片ID并加载笔迹数据的功能
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(function() {
+document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(function () {
         console.log('AnkiDraw Debug: DOM加载完成，开始获取卡片ID');
-        
+
         if (typeof pycmd !== 'function') {
             console.error('AnkiDraw Error: pycmd函数不可用，无法获取卡片ID');
             return;
         }
-        
+
         // 获取卡片ID
         var cardId = '';
-        
+
         try {
             // 尝试从全局变量中获取卡片ID (桌面版Anki)
             if (typeof globalThis !== 'undefined' && typeof globalThis.ankiPlatform !== 'undefined') {
                 console.log('AnkiDraw Debug: 正在使用Anki桌面版方法获取卡片ID');
             }
-            
+
             // 尝试最常见的方法
             if (typeof globalThis !== 'undefined' && typeof globalThis.cardid !== 'undefined') {
                 cardId = globalThis.cardid;
                 console.log('AnkiDraw Debug: 从globalThis.cardid获取到卡片ID:', cardId);
-            } 
+            }
             // 尝试AnkiDroid方法
             else if (typeof AnkiDroidJS !== 'undefined' && typeof AnkiDroidJS.ankiGetCardId === 'function') {
                 cardId = AnkiDroidJS.ankiGetCardId();
@@ -4801,11 +4827,11 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (e) {
             console.error('AnkiDraw Error: 获取卡片ID失败', e);
         }
-        
+
         if (cardId) {
             window.currentCardId = cardId;
             console.log('AnkiDraw Debug: 成功设置当前卡片ID:', cardId);
-            
+
             // 请求加载此卡片的笔迹数据 - 根据当前是问题还是答案加载不同笔迹
             try {
                 // 检测当前是否显示答案
@@ -4814,7 +4840,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     var answerElement = document.getElementById('answer');
                     isShowingAnswer = answerElement && window.getComputedStyle(answerElement).display !== 'none';
                 }
-                
+
                 if (isShowingAnswer) {
                     console.log('AnkiDraw Debug: 检测到答案区域，加载全部笔迹');
                     pycmd('ankidraw:load_all_strokes:' + cardId);
@@ -4845,20 +4871,20 @@ function restore_window_size() {
             console.error('AnkiDraw Error: 恢复窗口大小失败，没有卡片ID');
             return;
         }
-        
+
         // 检查是否在问题侧，如果是则直接返回
         if (isQuestionSide) {
             return;
         }
-        
+
         // 获取当前DPI和操作系统信息
         var dpr = window.devicePixelRatio || 1;
         var isWindows = navigator.userAgent.indexOf('Windows') !== -1;
-        
+
         // 获取当前窗口大小信息
         var currentWidth = window.innerWidth;
         var currentHeight = window.innerHeight;
-        
+
         // 计算当前卡片内容高度
         var card = document.getElementsByClassName('card')[0];
         var cardHeight = card ? Math.max(card.scrollHeight, card.offsetHeight, card.clientHeight) : 0;
@@ -4867,10 +4893,10 @@ function restore_window_size() {
             document.documentElement.offsetHeight,
             document.documentElement.clientHeight
         );
-        
+
         // 附加当前系统和窗口信息
         var systemInfo = `:${dpr}:${isWindows ? 'win' : 'other'}:${currentWidth}:${currentHeight}:${docHeight}:${cardHeight}`;
-        
+
         console.log('AnkiDraw Debug: 恢复窗口大小，当前窗口信息:', {
             width: currentWidth,
             height: currentHeight,
@@ -4879,7 +4905,7 @@ function restore_window_size() {
             docHeight: docHeight,
             cardHeight: cardHeight
         });
-        
+
         // 通过pycmd发送命令到Python端
         if (typeof pycmd === 'function') {
             // 只处理答案侧的情况
@@ -4903,20 +4929,20 @@ function updateRestoreWindowSizeButtonVisibility() {
 }
 
 // 添加自定义事件监听器
-document.addEventListener('ankidraw:showQuestion', function() {
+document.addEventListener('ankidraw:showQuestion', function () {
     isQuestionSide = true;
     updateRestoreWindowSizeButtonVisibility();
 });
 
-document.addEventListener('ankidraw:showAnswer', function() {
+document.addEventListener('ankidraw:showAnswer', function () {
     isQuestionSide = false;
     updateRestoreWindowSizeButtonVisibility();
 });
 
 // 在页面加载时初始化按钮状态
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // 在现有DOMContentLoaded事件处理函数中添加
-    setTimeout(function() {
+    setTimeout(function () {
         updateRestoreWindowSizeButtonVisibility();
     }, 600); // 延迟执行，确保在其他初始化之后
 });

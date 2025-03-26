@@ -81,7 +81,7 @@
     "dialog_cancel": "取消",
     "dialog_default": "默认",
     
-    "tooltip_toggle_visibility": "切换可见性（, 逗号）",
+    "tooltip_toggle_visibility": "切换可见性（H）",
     "tooltip_toggle_eraser": "切换橡皮擦（Alt + Q），双击调节大小，框选擦除模式",
     "tooltip_line_tool": "直线工具（Alt + L），双击选择线型",
     "tooltip_rectangle_tool": "矩形工具（Alt + R）",
