@@ -1042,7 +1042,7 @@ document.addEventListener('keyup', function (e) {
         switch_small_canvas();
     }
     // alt + L or l
-    if ((e.key === "l" || e.key === "L") && e.altKey) {
+    if (e.key === "l" || e.key === "L") {
         e.preventDefault();
         switch_line_mode();
     }
