@@ -1036,8 +1036,8 @@ document.addEventListener('keyup', function (e) {
 
     // 完美手写功能(alt + X)已禁用
 
-    // alt + B or b
-    if ((e.key === "b" || e.key === "B") && e.altKey) {
+    // 切换至全屏模式或小画布模式
+    if (e.key === "f") {
         e.preventDefault();
         switch_small_canvas();
     }
